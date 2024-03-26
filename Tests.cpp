@@ -1,3 +1,9 @@
 #include "FileSystemEmulator.hpp"
 
-int main() { return 0; }
+int main() {
+  FileSystem fse;
+
+  fse.log();
+
+  return 0;
+}
