@@ -6,20 +6,20 @@ namespace fs = std::filesystem;
 int main() {
   FileSystem fse;
 
-  Path path;
+  fse.makeDirectory("/a");
+  fse.makeDirectory("/a/b");
+  fse.makeDirectory("/a/b/k");
+  fse.makeDirectory("/a/c");
+  fse.makeDirectory("/a/c/k");
 
-  path.set("/");
-  path.set("/dir");
-  path.set("/dir/");
-  path.set("dir/");
+  fse.makeDirectory("/d");
+  fse.makeDirectory("/d/b");
+  fse.makeDirectory("/d/b/k");
+  fse.makeDirectory("/d/c");
+  fse.makeDirectory("/d/c/k");
 
-  path.set("");
-  path.set("asd");
-  path.set("asdASD");
-  path.set("asdASD123");
-  path.set("asdASD123");
+  fse.makeDirectory("d");
 
-  fse.makeDirectory("/dir");
   fse.log();
 
   return 0;

@@ -3,6 +3,9 @@
 #include <algorithm>
 #include <vector>
 #include <string>
+#include <sstream>
+#include <iostream>
+#include <cassert>
 
 std::vector<char> transitions;
 
@@ -13,10 +16,7 @@ void initializeTransitions() {
   for (char i = '0'; i <= '9'; i++) transitions[i] = i;
   for (char i = 'A'; i <= 'Z'; i++) transitions[i] = i + ('a' - 'A');
   transitions['/'] = '/';
-}
-
-char getChar(char in) {
-  return transitions[in];
+  transitions['.'] = '.';
 }
 
 class Path {
@@ -27,8 +27,12 @@ public:
     set(path);
   }
 
-  bool isValid() {
+  bool isValid() const {
     return mIsValid;
+  }
+
+  bool isInvalid() const {
+    return !mIsValid;
   }
 
   bool isAbsolute() const {
@@ -36,7 +40,22 @@ public:
   }
 
   int getDepth() const {
-    return mDepth;
+    return mChain.size();
+  }
+
+  const std::vector<std::string>& getChain() const {
+    return mChain;
+  }
+
+  std::vector<std::string> getParentChain() const {
+    std::vector<std::string> out = mChain;
+    out.pop_back();
+    return out;
+  }
+
+  const std::string& getFilename() const {
+    assert(getDepth());
+    return mChain.back();
   }
 
   void set(const std::string& path) {
@@ -45,23 +64,48 @@ public:
       return;
     }
 
+    std::string lowercasePath = path;
     mIsValid = true;
-    mPath = path;
-
-    mDepth = std::count(path.begin(), path.end(), '/') + 1;
-    mDepth -= (mPath.back() == '/') + (path.front() == '/');
-
     mAbsolute = path.front() == '/';
+    mDirectory = path.back() == '/';
+    mChain.clear();
 
-    for (auto & character : mPath) {
-      character = getChar(character);
+    for (auto & character : lowercasePath) {
+      character = transitions[character];
       if (character == 1) mIsValid = false;
     }
+
+    if (lowercasePath == "/") return;
+
+    const char* begin = &lowercasePath.front() + (lowercasePath.front() == '/');
+    const char* end = &lowercasePath.back() - (lowercasePath.back() == '/');
+    const char* prev = begin;
+
+    for (const char* iter = begin; iter <= end; iter++) {
+      if (*iter == '/')  {
+        const auto string = lowercasePath.substr(prev - lowercasePath.c_str(), iter - prev);
+        mChain.push_back(string);
+        prev = iter + 1;
+      }
+    }
+
+    const auto string = lowercasePath.substr(prev - lowercasePath.c_str(), end - prev + 1);
+    mChain.push_back(string);
+
+    for (auto & key : mChain) {
+      if (key.empty()) mIsValid = false;
+      // std::cout << key << ' ';
+    }
+    // std::cout << "\n";
   }
 
+  const std::string& operator[](int idx) const {
+    return mChain[idx];
+  };
+
 private:
-  std::string mPath = "";
-  int mDepth = 0;
+  std::vector<std::string> mChain;
   bool mAbsolute = false;
   bool mIsValid = false;
+  bool mDirectory = false;
 };
