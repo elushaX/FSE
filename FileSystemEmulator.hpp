@@ -26,32 +26,15 @@
 // dynamic links ? -> yet another cache variable in each node?
 
 #include <vector>
+#include <string>
+#include <iostream>
+#include <sstream>
+#include <iomanip>
 
-struct Key {
-  long long name = 0;
-  long long type = 0;
+#include <filesystem>
 
-  bool operator==(const Key& in) const {
-    return name == in.name && type == in.type;
-  }
-
-  bool operator>(const Key& in) const {
-    if (name != in.name) return name > in.name;
-    return type > in.type;
-  }
-};
-
-struct Path {
-  Path(const char*) {}
-  const Key& getCurrentKey() { return {}; }
-  bool advance() {}
-  bool isRelative() {}
-  unsigned long long depth() { return 0; }
-  bool isValid() { return  false; }
-  void setSearchDepth(unsigned long long) {}
-
-  std::vector<Key> chain;
-};
+typedef std::filesystem::path Path;
+typedef std::string Key;
 
 struct Node {
   Key key;
@@ -96,7 +79,7 @@ struct Directory : Node {
     // TODO : dont relocate nodes (due existing links to the nodes), only change tree pointers
   }
 
-  bool attachNode(Path& directoryPath, const Key& newKey, Node* newNode) {
+  bool attachNode(const Path& directoryPath, const Key& newKey, Node* newNode) {
     Node* node = findNode(directoryPath);
     if (!node) {
       // TODO : update error status - invalid path
@@ -125,14 +108,14 @@ struct Directory : Node {
     return false;
   }
 
-  Node* findNode(Path& path) {
+  Node* findNode(const Path& path) {
     Node* node = this;
 
-    if (!path.advance()) {
+    if (false /*!path.advance()*/) {
       return node;
     }
 
-    const Key& key = path.getCurrentKey();
+    const Key& key = {}; // path.getCurrentKey();
     node = findUtil(key, &subNodes);
 
     if (!node) {
@@ -170,10 +153,11 @@ struct Directory : Node {
 
 };
 
-struct FileSystem {
+class FileSystem {
   Directory* root = nullptr;
   Directory* currentDirectory = nullptr;
 
+public:
   FileSystem() {
     root = new Directory();
   }
@@ -182,73 +166,61 @@ struct FileSystem {
     delete root;
   }
 
-  void makeDirectory(const char* directoryString) {
-    auto path = Path(directoryString);
-    if (!path.isValid()) {
-      // TODO : update error status - invalid path
-      return;
-    }
-
-    Directory* parentDirectory = path.isRelative() ? currentDirectory : root;
-
+  void makeDirectory(const Path& path) {
+    Directory* parentDirectory = path.is_relative() ? currentDirectory : root;
     auto newDirectory = new Directory();
-    path.setSearchDepth(path.depth() - 1);
-
-    if (!parentDirectory->attachNode(path, path.chain.back(), newDirectory)) {
+    if (!parentDirectory->attachNode(path.parent_path(), path.filename(), newDirectory)) {
       delete newDirectory;
     }
   }
 
   void changeCurrent(const char* directoryString) {
     auto path = Path(directoryString);
-
-    if (!path.isValid()) {
-      // TODO : update error status - invalid path
-      return;
-    }
-
-    auto node = path.isRelative() ? root->findNode(path) : currentDirectory->findNode(path);
+    auto node = path.is_relative() ? root->findNode(path) : currentDirectory->findNode(path);
     if (node->type != Node::DIRECTORY) {
       // TODO : update error status - no such directory
       return;
     }
-
     currentDirectory = (Directory*) node;
   }
 
   void log() {
-    logDirectory(root);
+    std::stringstream ss;
+    logNode(ss, root, 0);
+    std::cout << ss.str();
   }
 
-  void logUtil(const Node* node) {
+private:
+  void logUtil(std::stringstream& ss, const Node* node, int depth) {
     if (!node) return;
-    logUtil(node->left);
-
-    logNode(node);
-
-    logUtil(node->right);
+    logUtil(ss, node->left, depth);
+    logNode(ss, node, depth);
+    logUtil(ss, node->right, depth);
   }
 
-  void logNode(const Node* node) {
+  void logNode(std::stringstream& ss, const Node* node, int depth) {
     switch (node->type) {
       case Node::DIRECTORY:
-        return logDirectory((Directory*) node);
+        return logDirectory(ss, (Directory*) node, depth);
       case Node::FILE:
-        return logFile((File*) node);
+        return logFile(ss, (File*) node, depth);
       case Node::LINK:
-        return logLink((Link*) node);
+        return logLink(ss, (Link*) node, depth);
+      default:
+        exit(1);
     }
   }
 
-  void logDirectory(const Directory* dir) {
-
+  void logDirectory(std::stringstream& ss, const Directory* dir, int depth) {
+    ss << std::setw(depth * 2) << dir->key;
+    logUtil(ss, &dir->subNodes, depth + 1);
   }
 
-  void logFile(const File* file) {
-
+  void logFile(std::stringstream& ss, const File* file, int depth) {
+    ss << std::setw(depth * 2) << file->key << "\n";
   }
 
-  void logLink(const Link* link) {
-
+  void logLink(std::stringstream& ss, const Link* link, int depth) {
+    ss << std::setw(depth * 2) << "link [" << link->key << "] \n";
   }
 };
