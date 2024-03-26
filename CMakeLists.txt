@@ -1,4 +1,8 @@
+cmake_minimum_required(VERSION 3.5)
+
 project(FileSystemEmulator)
+
+set(CMAKE_CXX_STANDARD 20)
 
 add_library(${PROJECT_NAME} STATIC FileSystemEmulator.cpp FileSystemEmulator.hpp)
 target_include_directories(${PROJECT_NAME} PUBLIC .)
