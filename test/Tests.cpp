@@ -1,5 +1,6 @@
 
 #include "Interpreter.hpp"
+#include "UnitTest++/UnitTest++.h"
 
 int main() {
   Interpreter interpreter;
@@ -11,7 +12,10 @@ int main() {
   interpreter.interpret("MD /A123");
   interpreter.interpret("cd /A123");
   interpreter.interpret("md asd");
+  interpreter.interpret("md asd/asd");
+  interpreter.interpret("md asd/asd/asd");
+  interpreter.interpret("md asd/asd/asd/asd");
+  interpreter.interpret("rd asd");
 
-
-  return 0;
+  return UnitTest::RunAllTests();
 }

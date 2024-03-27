@@ -8,6 +8,11 @@ typedef unsigned long ui32;
 typedef long long i64;
 typedef long i32;
 
+template <typename T>
+struct SelectValueOrReference {
+  using type = typename std::conditional<std::is_scalar<T>::value, T, const T&>::type;
+};
+
 template <typename NumericType>
 struct AvlNumericKey {
 
@@ -21,9 +26,9 @@ struct AvlNumericKey {
   inline bool descentLeft(AvlNumericKey in) const { return in.val < val; }
   inline bool exactNode(AvlNumericKey in) const { return in.val == val; }
 
-  inline AvlNumericKey getFindKey(/**/) const { return *this; }
-  inline AvlNumericKey keyInRightSubtree(AvlNumericKey in) const { return in; }
-  inline AvlNumericKey keyInLeftSubtree(AvlNumericKey in) const { return in; }
+  inline const AvlNumericKey& getFindKey(/**/) const { return *this; }
+  inline const AvlNumericKey& keyInRightSubtree(const AvlNumericKey& in) const { return in; }
+  inline const AvlNumericKey& keyInLeftSubtree(const AvlNumericKey& in) const { return in; }
 
   template <typename NodeType>
   inline void updateTreeCacheCallBack(const NodeType&) {}
@@ -31,8 +36,8 @@ struct AvlNumericKey {
 
 template <typename Key, typename Data>
 class AvlTree {
-  typedef const Key& KeyArg;
-  typedef Data DataArg;
+  typedef SelectValueOrReference<Key>::type KeyArg;
+  typedef SelectValueOrReference<Data>::type DataArg;
 
 public:
   class Node {

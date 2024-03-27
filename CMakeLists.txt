@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.5)
 
 project(FileSystemEmulator)
-
 set(CMAKE_CXX_STANDARD 20)
+
+add_subdirectory(ext/testing)
+target_compile_options(UnitTest++ PUBLIC -Wno-error)
 
 file(GLOB SOURCES "src/*.cpp")
 file(GLOB HEADERS "inc/*.hpp")
@@ -15,5 +17,5 @@ target_link_libraries(fse ${PROJECT_NAME})
 
 file(GLOB TEST_SOURCES "./test/*.cpp")
 add_executable(Test${PROJECT_NAME} ${TEST_SOURCES})
-target_link_libraries(Test${PROJECT_NAME} ${PROJECT_NAME})
+target_link_libraries(Test${PROJECT_NAME} ${PROJECT_NAME} UnitTest++)
 add_test(NAME Test${PROJECT_NAME} COMMAND Test${PROJECT_NAME})
