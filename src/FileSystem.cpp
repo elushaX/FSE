@@ -235,7 +235,7 @@ void Directory::getMaxDepthUtil(ui32 depth, ui32& maxDepth) const {
 }
 
 ui32 Directory::getMaxDepth() const {
-  ui32 maxDepth = 0;
+  ui32 maxDepth = 1;
   getMaxDepthUtil(1, maxDepth);
   return maxDepth;
 }
@@ -280,7 +280,7 @@ bool FileSystem::changeCurrent(const Path& path) {
   }
 
   auto node = path.isAbsolute() ? root->findNode(path.getChain(), 0) : currentDirectory->findNode(path.getChain(), 0);
-  if (node->type != Node::DIRECTORY) {
+  if (!node || node->type != Node::DIRECTORY) {
     gError = "No such directory";
     return false;
   }

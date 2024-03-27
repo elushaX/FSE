@@ -10,22 +10,37 @@ void getWords(const std::string& in, std::vector<std::string>& out) {
 }
 
 Interpreter::Interpreter() {
-  mCommands["cd"] = { 1, [](FileSystem& filesystem, const std::vector<std::string>& args){
-    return filesystem.changeCurrent(args[1]);
-  }};
+  mCommands["cd"] = {
+      "change working directory",
+      1,
+      [](FileSystem& filesystem, const std::vector<std::string>& args){
+        return filesystem.changeCurrent(args[1]);
+      }
+  };
 
-  mCommands["md"] = { 1, [](FileSystem& filesystem, const std::vector<std::string>& args){
-    return filesystem.makeDirectory(args[1]);
-  }};
+  mCommands["md"] = {
+      "create directory",
+      1,
+      [](FileSystem& filesystem, const std::vector<std::string>& args){
+        return filesystem.makeDirectory(args[1]);
+      }
+  };
 }
 
 void Interpreter::reportError(const std::string& description) {
   std::cout << "ERROR : " << description << std::endl;
 }
 
-void Interpreter::interpret(const std::string& command) {
-  std::cout << "\"" << command << "\"\n";
+void Interpreter::printHelp() {
+  std::cout << "Commands: \n";
+  for (auto& command : mCommands) {
+    std::cout << command.first << " - ";
+    std::cout << command.second.description;
+    std::cout << "\n";
+  }
+}
 
+void Interpreter::interpret(const std::string& command) {
   std::vector<std::string> words;
   getWords(command, words);
 
@@ -41,6 +56,7 @@ void Interpreter::interpret(const std::string& command) {
 
   if (iter == mCommands.end()) {
     reportError("Command not found");
+    printHelp();
     return;
   }
 
