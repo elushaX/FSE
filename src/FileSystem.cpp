@@ -1,5 +1,8 @@
 #include "FileSystem.hpp"
 #include <iostream>
+#include <cassert>
+
+static std::string gError;
 
 void Node::updateTreeCache() {
   // TODO update cache
@@ -20,12 +23,12 @@ Directory::Directory() {
 bool Directory::attachNode(const std::vector<Key>& directoryPath, const Key& newKey, Node* newNode) {
   Node* node = findNode(directoryPath, 0);
   if (!node) {
-    // TODO : update error status - invalid path
+    gError = "Invalid path";
     return false;
   }
 
   if (node->type != DIRECTORY) {
-    // TODO : update error status - given path is not a directory
+    gError = "given path is not a directory";
     return false;
   }
 
@@ -34,7 +37,7 @@ bool Directory::attachNode(const std::vector<Key>& directoryPath, const Key& new
   Node* existingNode = directory->treeSearch(newKey);
   if (existingNode) {
     if (existingNode->type == newNode->type) return false; // exit silently
-    // TODO : report error cant add node
+    gError = "Cant add node";
     return false;
   }
 
@@ -233,7 +236,7 @@ void Directory::getMaxDepthUtil(ui32 depth, ui32& maxDepth) const {
 
 ui32 Directory::getMaxDepth() const {
   ui32 maxDepth = 0;
-  getMaxDepthUtil(0, maxDepth);
+  getMaxDepthUtil(1, maxDepth);
   return maxDepth;
 }
 
@@ -249,31 +252,41 @@ FileSystem::~FileSystem() {
     delete root;
   }
 
-void FileSystem::makeDirectory(const Path& path) {
+bool FileSystem::makeDirectory(const Path& path) {
   if (path.getDepth() < 1 || path.isInvalid()) {
-    // TODO : update error - invalid path
-    return;
+    gError = "Invalid path";
+    return false;
   }
 
   Directory* parentDirectory = path.isAbsolute() ? root : currentDirectory;
-  auto newDirectory = new Directory();
-  if (!parentDirectory->attachNode(path.getParentChain(), path.getFilename(), newDirectory)) {
-    delete newDirectory;
+
+  auto existingNode = parentDirectory->findNode(path.getChain());
+  if (existingNode) {
+    if (existingNode->type == Node::DIRECTORY) return true;
+    gError = "Cant create directory, such node exists";
+    return false;
   }
+
+  auto newDirectory = new Directory();
+  assert(parentDirectory->attachNode(path.getParentChain(), path.getFilename(), newDirectory));
+
+  return true;
 }
 
-void FileSystem::changeCurrent(const Path& path) {
+bool FileSystem::changeCurrent(const Path& path) {
   if (path.isInvalid()) {
-    // TODO : update error - invalid path
-    return;
+    gError = "Invalid path";
+    return false;
   }
 
   auto node = path.isAbsolute() ? root->findNode(path.getChain(), 0) : currentDirectory->findNode(path.getChain(), 0);
   if (node->type != Node::DIRECTORY) {
-    // TODO : update error status - no such directory
-    return;
+    gError = "No such directory";
+    return false;
   }
+
   currentDirectory = (Directory*) node;
+  return true;
 }
 
 void FileSystem::log() const {
@@ -281,7 +294,7 @@ void FileSystem::log() const {
   std::vector<bool> indents;
   indents.resize(root->getMaxDepth());
   logNode(ss, root, 0, indents);
-  std::cout << ss.str();
+  std::cout << ss.str() << "\n";
 }
 
 
@@ -305,6 +318,7 @@ void FileSystem::indent(std::stringstream & ss, int depth, std::vector<bool>& in
 }
 
 void FileSystem::logDirectory(std::stringstream & ss, const Directory* node, int depth, std::vector<bool>& indents) const {
+  ss << (node == currentDirectory ? "* " : "  ");
   indent(ss, depth, indents);
   ss << node->key << "\n";
   indents[depth] = true;
@@ -324,4 +338,8 @@ void FileSystem::logFile(std::stringstream& ss, const File* node, int depth, std
 void FileSystem::logLink(std::stringstream & ss, const Link* node, int depth, std::vector<bool>& indents) const {
   indent(ss, depth, indents);
   ss << "link [" << node->key << "] \n";
+}
+
+const std::string& FileSystem::getLastError() {
+  return gError;
 }

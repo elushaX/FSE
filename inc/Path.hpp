@@ -9,7 +9,7 @@ void initializeTransitions();
 class Path {
 public:
   Path() = default;
-  Path(const char* path);
+  Path(const std::string& path);
 
   void set(const std::string& path);
   const std::string& operator[](int idx) const;

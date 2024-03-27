@@ -1,42 +1,17 @@
 
-#include "FileSystem.hpp"
+#include "Interpreter.hpp"
 
 int main() {
-  FileSystem fse;
+  Interpreter interpreter;
 
-  fse.makeDirectory("/a");
-  fse.makeDirectory("/a/b");
-  fse.makeDirectory("/a/b/k");
-  fse.makeDirectory("/a/c");
-  fse.makeDirectory("/a/c/k");
+  interpreter.interpret("");
+  interpreter.interpret("m");
+  interpreter.interpret("mD a");
+  interpreter.interpret("mD /");
+  interpreter.interpret("MD /A123");
+  interpreter.interpret("cd /A123");
+  interpreter.interpret("md asd");
 
-  fse.makeDirectory("/d");
-  fse.makeDirectory("/d/b");
-  fse.makeDirectory("/d/b/k");
-  fse.makeDirectory("/d/c");
-  fse.makeDirectory("/d/c/k");
-
-  fse.makeDirectory("d");
-
-  fse.changeCurrent("/d/c/k");
-
-  fse.makeDirectory("/a");
-  fse.makeDirectory("/a/b");
-  fse.makeDirectory("/a/b/k");
-  fse.makeDirectory("/a/c");
-  fse.makeDirectory("/a/c/k");
-
-  fse.makeDirectory("ggad");
-  fse.makeDirectory("gad");
-  fse.makeDirectory("rwed");
-  fse.makeDirectory("e");
-  fse.makeDirectory("d");
-  fse.makeDirectory("d/b");
-  fse.makeDirectory("d/b/k");
-  fse.makeDirectory("d/c");
-  fse.makeDirectory("d/c/k");
-
-  fse.log();
 
   return 0;
 }

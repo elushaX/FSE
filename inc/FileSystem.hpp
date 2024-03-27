@@ -40,7 +40,7 @@ struct Directory : public Node {
   Directory();
 
   bool attachNode(const std::vector<Key>& directoryPath, const Key& newKey, Node* newNode);
-  Node* findNode(const std::vector<Key>& path, ui32 currentDepth);
+  Node* findNode(const std::vector<Key>& path, ui32 currentDepth = 0);
   void detachNode(Node* node);
 
   template<typename tFunctor>
@@ -79,9 +79,11 @@ public:
   FileSystem();
   ~FileSystem();
 
-  void makeDirectory(const Path& path);
-  void changeCurrent(const Path& path);
+  bool makeDirectory(const Path& path);
+  bool changeCurrent(const Path& path);
   void log() const;
+
+  const std::string& getLastError();
 
 private:
   void logNode(std::stringstream& ss, const Node* node, int depth, std::vector<bool>& indents) const;

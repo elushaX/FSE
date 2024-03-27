@@ -13,7 +13,7 @@ void initializeTransitions() {
   transitions['.'] = '.';
 }
 
-Path::Path(const char* path) {
+Path::Path(const std::string& path) {
   set(path);
 }
 
