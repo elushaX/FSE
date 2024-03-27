@@ -101,6 +101,7 @@ void Directory::detachNode(Node* node) {
   // TODO : remove util from avl tree
   // TODO : update all cache all the way up to the root (due to the links)
   // TODO : dont relocate nodes (due existing links to the nodes), only change tree pointers
+  members->parent = nullptr;
 }
 
 // TODO : user avl tree insertion
@@ -110,6 +111,7 @@ void Directory::detachNode(Node* node) {
 void Directory::treeInsert(const Key& newKey, Node* newNode) {
   newNode->key = newKey;
   members = insertUtil(members, newKey, newNode);
+  members->parent = nullptr;
 }
 
 // recursively returns valid isLeft or isRight child or root

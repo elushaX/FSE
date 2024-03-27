@@ -9,7 +9,8 @@ typedef unsigned long long ui32;
 typedef std::string Key;
 extern std::string gError;
 
-struct Node {
+class Node {
+public:
   enum Type : ui32 { NONE, DIRECTORY, FILE, LINK };
 
   Key key;
@@ -27,18 +28,21 @@ struct Node {
   void updateTreeCache();
 };
 
-struct File : public Node {
+class File : public Node {
+public:
   File();
 };
 
-struct Link : public Node {
+class Link : public Node {
+public:
   Link();
 
   Node* link = nullptr;
   bool hard = false;
 };
 
-struct Directory : public Node {
+class Directory : public Node {
+public:
   Directory();
 
   bool attachNode(const std::vector<Key>& directoryPath, const Key& newKey, Node* newNode);
