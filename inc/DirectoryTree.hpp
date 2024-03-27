@@ -9,6 +9,32 @@
 extern std::string gError;
 typedef std::string Key;
 
+class Node {
+public:
+  enum Type : ui32 { NONE, DIRECTORY, FILE, LINK } ;
+
+public:
+  virtual ~Node();
+
+public:
+  Type mType = NONE;
+};
+
+class File : public Node {
+public:
+  File();
+};
+
+class Link : public Node {
+public:
+  Link();
+  [[nodiscard]] Node* getLink() const;
+
+private:
+  Node* mLink = nullptr;
+  bool mIsHard = false;
+};
+
 struct DirectoryKey {
   DirectoryKey() = default;
   explicit DirectoryKey(Key val) : val(std::move(val)) {}
@@ -33,39 +59,14 @@ public:
   ui32 incomingLinksDynamic = 0;
 };
 
-class Node {
-public:
-  enum Type : ui32 { NONE, DIRECTORY, FILE, LINK } ;
-
-public:
-  virtual void dump(const Node* node, const Key& key) const = 0;
-  virtual ~Node();
-
-public:
-  Type mType = NONE;
-};
-
-class File : public Node {
-public:
-  File();
-};
-
-class Link : public Node {
-public:
-  Link();
-  [[nodiscard]] Node* getLink() const;
-
-private:
-  Node* mLink = nullptr;
-  bool mIsHard = false;
-};
-
 class Directory : public Node {
-  typedef AvlTree<DirectoryKey, Node*> DirectoryTree;
+  typedef AvlTree<DirectoryKey, class Node*> DirectoryTree;
 
 public:
   Directory();
   ~Directory() override;
+
+  void dump(std::stringstream& ss);
 
   bool attachNode(const std::vector<Key>& directoryPath, const Key& newKey, Node* newNode);
   Node* findNode(const std::vector<Key>& path, ui32 currentDepth = 0);
@@ -81,6 +82,7 @@ public:
 private:
   void updateTreeLinkCount(Node* node);
   void getMaxDepthUtil(ui32 depth, ui32& maxDepth) const;
+  void dumpUtil(std::stringstream& ss, ui32 currentDepth, std::vector<bool>& indents);
 
 public:
   DirectoryTree mMembers;

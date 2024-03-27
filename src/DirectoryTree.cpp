@@ -1,6 +1,8 @@
 
 #include "DirectoryTree.hpp"
 
+#include <sstream>
+
 std::string gError;
 
 Node::~Node() = default;
@@ -37,9 +39,9 @@ bool Directory::attachNode(const std::vector<Key>& directoryPath, const Key& new
 
   auto directory = ((Directory*) node);
 
-  Node* existingNode = directory->mMembers.find(DirectoryKey(newKey))->data;
-  if (existingNode) {
-    if (existingNode->mType == newNode->mType) return false; // exit silently
+  DirectoryTree::Node* iterNode = directory->mMembers.find(DirectoryKey(newKey));
+  if (iterNode) {
+    if (iterNode->data->mType == newNode->mType) return false; // exit silently
     gError = "Cant add node";
     return false;
   }
@@ -56,11 +58,13 @@ Node* Directory::findNode(const std::vector<Key>& path, ui32 currentDepth) {
   }
 
   const Key& key = path[currentDepth];
-  Node* node = mMembers.find(DirectoryKey(key))->data;
+  DirectoryTree::Node* iterNode = mMembers.find(DirectoryKey(key));
 
-  if (!node) {
+  if (!iterNode) {
     return nullptr;
   }
+
+  Node* node = iterNode->data;
 
   // link on link is not allowed
   while (true) {
@@ -95,7 +99,7 @@ void Directory::getMaxDepthUtil(ui32 depth, ui32& maxDepth) const {
   maxDepth = std::max(depth, maxDepth);
   mMembers.traverseInorder(mMembers.getRoot(), [&](const DirectoryTree::Node* node){
     if (node->data->mType == DIRECTORY) {
-      ((Directory*)node)->getMaxDepthUtil(++depth, maxDepth);
+      ((Directory*)node->data)->getMaxDepthUtil(++depth, maxDepth);
     }
   });
 }
@@ -104,4 +108,44 @@ ui32 Directory::getMaxDepth() const {
   ui32 maxDepth = 1;
   getMaxDepthUtil(1, maxDepth);
   return maxDepth;
+}
+
+void Directory::dump(std::stringstream& ss) {
+  std::vector<bool> indents;
+  indents.resize(getMaxDepth());
+
+  dumpUtil(ss, 0, indents);
+
+  ss << "\n";
+}
+
+static void indent(std::stringstream & ss, ui32 depth, std::vector<bool>& indents) {
+  if (!depth) return;
+  for (auto i  = 0; i < depth - 1; i++) {
+    ss << (indents[i] ? " |" : "  ");
+  }
+  ss << " |_";
+}
+
+void Directory::dumpUtil(std::stringstream& ss, ui32 currentDepth, std::vector<bool>& indents) {
+  indents[currentDepth] = true;
+  currentDepth++;
+
+  auto lastNode = mMembers.maxNode(mMembers.getRoot());
+  traverseInorder([&](const DirectoryTree::Node* node){
+    if (lastNode == node) indents[currentDepth - 1] = false;
+
+    indent(ss, currentDepth, indents);
+    ss << node->key.val << "\n";
+
+    switch (node->data->mType) {
+      case Node::DIRECTORY:
+        ((Directory*) node->data)->dumpUtil(ss, currentDepth, indents);
+        return;
+
+      default:
+        // do nothing for now
+        return;
+    }
+  });
 }
