@@ -38,6 +38,26 @@ bool FileSystem::makeDirectory(const Path& path) {
   return true;
 }
 
+bool FileSystem::removeDirectory(const Path& path) {
+  if (path.getDepth() < 1 || path.isInvalid()) {
+    gError = "Invalid path";
+    return false;
+  }
+
+  Directory* parentDirectory = path.isAbsolute() ? root : currentDirectory;
+
+  auto existingNode = parentDirectory->findNode(path.getChain());
+  if (!existingNode) {
+    gError = "Cant remove, such node doesnt exists";
+    return false;
+  }
+
+  assert(parentDirectory->detachNode(path.getParentChain(), path.getFilename()));
+
+  delete existingNode;
+  return true;
+}
+
 bool FileSystem::changeCurrent(const Path& path) {
   if (path.isInvalid()) {
     gError = "Invalid path";

@@ -25,6 +25,14 @@ Interpreter::Interpreter() {
         return filesystem.makeDirectory(args[1]);
       }
   };
+
+  mCommands["rd"] = {
+      "remove directory",
+      1,
+      [](FileSystem& filesystem, const std::vector<std::string>& args){
+        return filesystem.removeDirectory(args[1]);
+      }
+  };
 }
 
 void Interpreter::reportError(const std::string& description) {

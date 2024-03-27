@@ -23,17 +23,16 @@ Directory::Directory() {
   mType = DIRECTORY;
 }
 
-Directory::~Directory() = default;
+Directory::~Directory() {
+  mMembers.traverseInorder(mMembers.getRoot(), [](DirectoryTree::Node* node){
+    delete node->data;
+  });
+}
 
 bool Directory::attachNode(const std::vector<Key>& directoryPath, const Key& newKey, Node* newNode) {
   Node* node = findNode(directoryPath, 0);
-  if (!node) {
+  if (!node || node->mType != DIRECTORY) {
     gError = "Invalid path";
-    return false;
-  }
-
-  if (node->mType != DIRECTORY) {
-    gError = "given path is not a directory";
     return false;
   }
 
@@ -47,8 +46,29 @@ bool Directory::attachNode(const std::vector<Key>& directoryPath, const Key& new
   }
 
   directory->mMembers.insert(DirectoryKey(newKey), newNode);
-  updateTreeLinkCount(newNode);
 
+  updateTreeLinkCount(directory);
+  return true;
+}
+
+bool Directory::detachNode(const std::vector<Key>& directoryPath, const Key& key) {
+  Node* node = findNode(directoryPath, 0);
+  if (!node || node->mType != DIRECTORY) {
+    gError = "Invalid path";
+    return false;
+  }
+
+  auto directory = ((Directory*) node);
+
+  DirectoryTree::Node* removeNode = directory->mMembers.find(DirectoryKey(key));
+  if (!removeNode) {
+    gError = "Invalid path";
+    return false;
+  }
+
+  directory->mMembers.remove(DirectoryKey(key));
+
+  updateTreeLinkCount(directory);
   return true;
 }
 
@@ -88,10 +108,6 @@ Node* Directory::findNode(const std::vector<Key>& path, ui32 currentDepth) {
 
 void Directory::updateTreeLinkCount(Node* node) {
   // TODO : update all caches all the way up to '/'
-}
-
-void Directory::detachNode(Node* node) {
-  // mMembers.remove();
 }
 
 void Directory::getMaxDepthUtil(ui32 depth, ui32& maxDepth) const {
