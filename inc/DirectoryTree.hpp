@@ -4,7 +4,7 @@
 #include <vector>
 
 typedef unsigned long long ui64;
-typedef unsigned long long ui32;
+typedef unsigned long ui32;
 
 typedef std::string Key;
 extern std::string gError;
