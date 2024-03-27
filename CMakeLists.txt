@@ -4,9 +4,13 @@ project(FileSystemEmulator)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_library(${PROJECT_NAME} STATIC FileSystemEmulator.cpp FileSystemEmulator.hpp)
-target_include_directories(${PROJECT_NAME} PUBLIC .)
+file(GLOB SOURCES "./src/*.cpp")
+file(GLOB HEADERS "./inc/*.hpp")
 
-add_executable(Test${PROJECT_NAME} Tests.cpp)
+add_library(${PROJECT_NAME} STATIC ${SOURCES} ${HEADERS})
+target_include_directories(${PROJECT_NAME} PUBLIC ./inc/)
+
+file(GLOB TEST_SOURCES "./test/*.cpp")
+add_executable(Test${PROJECT_NAME} ${TEST_SOURCES})
 target_link_libraries(Test${PROJECT_NAME} ${PROJECT_NAME})
 add_test(NAME Test${PROJECT_NAME} COMMAND Test${PROJECT_NAME})
