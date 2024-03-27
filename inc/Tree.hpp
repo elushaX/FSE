@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cassert>
+#include <algorithm>
+
 typedef unsigned long long ui64;
 typedef unsigned long ui32;
 typedef long long i64;
@@ -63,12 +66,12 @@ public:
   };
 
 public:
-  AvlTree() {}
+  AvlTree() = default;
   ~AvlTree() { removeAll(); }
 
   [[nodiscard]] ui64 size() const { return mSize; }
 
-  Node* head() const { return this->mRoot; }
+  Node* getRoot() const { return this->mRoot; }
 
   void insert(KeyArg key, DataArg data) {
     mRoot = insertUtil(mRoot, key, data);
@@ -102,10 +105,10 @@ public:
       if (!iter) return nullptr;
       if (iter->exactNode(key)) return iter;
       if (iter->descentLeft(key)) {
-        key = iter->keyInLeftSubtree(key);
+        // key = iter->keyInLeftSubtree(key);
         iter = iter->mLeft;
       } else {
-        key = iter->keyInRightSubtree(key);
+        // key = iter->keyInRightSubtree(key);
         iter = iter->mRight;
       }
     }
@@ -152,7 +155,7 @@ public:
     }
 
     if (head->mLeft && head->mRight) {
-      if (max(head->mLeft->mHeight, head->mRight->mHeight) != head->mHeight - 1) return head;
+      if (std::max(head->mLeft->mHeight, head->mRight->mHeight) != head->mHeight - 1) return head;
     }
 
     int balance = getNodeHeight(head->mRight) - getNodeHeight(head->mLeft);
@@ -166,14 +169,22 @@ public:
     return findInvalidNode(head->mLeft);
   }
 
-  bool isValid() { return findInvalidNode(head()) == nullptr; }
+  bool isValid() { return findInvalidNode(getRoot()) == nullptr; }
 
   template <typename tFunctor>
-  void traverse(Node* node, bool after, tFunctor functor) {
-    if (!after) functor(node);
-    if (node->mLeft) traverse(node->mLeft, after, functor);
-    if (node->mRight) traverse(node->mRight, after, functor);
-    if (after) functor(node);
+  void traverseInorder(Node* node, tFunctor functor) {
+    if (!node) return;
+    traverseInorder(node->mLeft, functor);
+    functor(node);
+    traverseInorder(node->mRight, functor);
+  }
+
+  template <typename tFunctor>
+  void traverseInorder(const Node* node, tFunctor functor) const {
+    if (!node) return;
+    traverseInorder(node->mLeft, functor);
+    functor(node);
+    traverseInorder(node->mRight, functor);
   }
 
   void removeAll() {
@@ -207,7 +218,7 @@ private:
 
   // returns new head
   Node* rotateLeft(Node* pivot) {
-    DEBUG_ASSERT(pivot);
+    assert(pivot);
 
     Node* const head = pivot;
     Node* const right = pivot->mRight;
@@ -224,8 +235,8 @@ private:
     right->mLeft = head;
 
     // heights
-    head->mHeight = 1 + max(getNodeHeight(head->mLeft), getNodeHeight(head->mRight));
-    right->mHeight = 1 + max(getNodeHeight(right->mLeft), getNodeHeight(right->mRight));
+    head->mHeight = 1 + std::max(getNodeHeight(head->mLeft), getNodeHeight(head->mRight));
+    right->mHeight = 1 + std::max(getNodeHeight(right->mLeft), getNodeHeight(right->mRight));
 
     // cache
     head->updateTreeCacheCallBack();
@@ -235,7 +246,7 @@ private:
   }
 
   Node* rotateRight(Node* pivot) {
-    DEBUG_ASSERT(pivot);
+    assert(pivot);
 
     Node* const head = pivot;
     Node* const left = pivot->mLeft;
@@ -252,8 +263,8 @@ private:
     left->mRight = head;
 
     // heights
-    head->mHeight = 1 + max(getNodeHeight(head->mLeft), getNodeHeight(head->mRight));
-    left->mHeight = 1 + max(getNodeHeight(left->mLeft), getNodeHeight(left->mRight));
+    head->mHeight = 1 + std::max(getNodeHeight(head->mLeft), getNodeHeight(head->mRight));
+    left->mHeight = 1 + std::max(getNodeHeight(left->mLeft), getNodeHeight(left->mRight));
 
     // cache
     head->updateTreeCacheCallBack();
@@ -285,7 +296,7 @@ private:
     }
 
     // update height
-    head->mHeight = 1 + max(getNodeHeight(head->mRight), getNodeHeight(head->mLeft));
+    head->mHeight = 1 + std::max(getNodeHeight(head->mRight), getNodeHeight(head->mLeft));
 
     i64 balance = i64(getNodeHeight(head->mRight) - getNodeHeight(head->mLeft));
 
@@ -342,7 +353,7 @@ private:
 
     if (head == nullptr) return head;
 
-    head->mHeight = 1 + max(getNodeHeight(head->mRight), getNodeHeight(head->mLeft));
+    head->mHeight = 1 + std::max(getNodeHeight(head->mRight), getNodeHeight(head->mLeft));
     i64 balance = getNodeHeight(head->mRight) - getNodeHeight(head->mLeft);
 
     if (balance < -1) {

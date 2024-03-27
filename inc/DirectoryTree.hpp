@@ -1,33 +1,48 @@
 #pragma once
 
+#include "Tree.hpp"
+
 #include <string>
+#include <utility>
 #include <vector>
 
-typedef unsigned long long ui64;
-typedef unsigned long ui32;
-
-typedef std::string Key;
 extern std::string gError;
+typedef std::string Key;
+
+struct DirectoryKey {
+  DirectoryKey() = default;
+  explicit DirectoryKey(Key val) : val(std::move(val)) {}
+
+  [[nodiscard]] inline bool descentRight(const DirectoryKey& in) const { return in.val > val; }
+  [[nodiscard]] inline bool descentLeft(const DirectoryKey& in) const { return in.val < val; }
+  [[nodiscard]] inline bool exactNode(const DirectoryKey& in) const { return in.val == val; }
+
+  [[nodiscard]] inline const DirectoryKey& getFindKey() const { return *this; }
+  static inline const DirectoryKey& keyInRightSubtree(const DirectoryKey& in) { return in; }
+  static inline const DirectoryKey& keyInLeftSubtree(const DirectoryKey& in) { return in; }
+
+  template <typename NodeType>
+  inline void updateTreeCacheCallBack(const NodeType&) {
+    // TODO : update incoming links
+  }
+
+public:
+  Key val;
+
+  ui32 incomingLinksHard = 0;
+  ui32 incomingLinksDynamic = 0;
+};
 
 class Node {
 public:
-  enum Type : ui32 { NONE, DIRECTORY, FILE, LINK };
+  enum Type : ui32 { NONE, DIRECTORY, FILE, LINK } ;
 
-  Key key;
-
-  Node* parent = nullptr;
-  Node* left = nullptr;
-  Node* right = nullptr;
-
-  ui32 height = 0;
-  ui32 incomingLinksHard = 0;
-  ui32 incomingLinksDynamic = 0;
-
-  Type type = NONE;
-
-  void updateTreeCache();
-
+public:
+  virtual void dump(const Node* node, const Key& key) const = 0;
   virtual ~Node();
+
+public:
+  Type mType = NONE;
 };
 
 class File : public Node {
@@ -38,47 +53,35 @@ public:
 class Link : public Node {
 public:
   Link();
+  [[nodiscard]] Node* getLink() const;
 
-  Node* link = nullptr;
-  bool hard = false;
+private:
+  Node* mLink = nullptr;
+  bool mIsHard = false;
 };
 
 class Directory : public Node {
+  typedef AvlTree<DirectoryKey, Node*> DirectoryTree;
+
 public:
   Directory();
-  ~Directory();
+  ~Directory() override;
 
   bool attachNode(const std::vector<Key>& directoryPath, const Key& newKey, Node* newNode);
   Node* findNode(const std::vector<Key>& path, ui32 currentDepth = 0);
   void detachNode(Node* node);
 
-  template<typename tFunctor>
-  void traverseInorder(tFunctor functor) const {
-    traverseInorderUtil(members, functor);
-  }
-
-  [[nodiscard]] Node* maxNode() const;
   [[nodiscard]] ui32 getMaxDepth() const;
 
-private:
-  Node* treeSearch(const Key& key);
-  void updateTreeLinkCount(Node* node);
-  void treeInsert(const Key& newKey, Node* newNode);
-  Node* insertUtil(Node* head, const Key& key, Node* aNode);
-  Node* rotateLeft(Node* pivot);
-  Node* rotateRight(Node* pivot);
-  static inline ui32 getNodeHeight(const Node* node);
-  void getMaxDepthUtil(ui32 depth, ui32& maxDepth) const;
-
   template<typename tFunctor>
-  void traverseInorderUtil(Node* node, tFunctor functor) const {
-    if (!node) return;
-    traverseInorderUtil(node->left, functor);
-    functor(node);
-    traverseInorderUtil(node->right, functor);
+  void traverseInorder(tFunctor functor) const {
+    mMembers.traverseInorder(mMembers.getRoot(), functor);
   }
 
+private:
+  void updateTreeLinkCount(Node* node);
+  void getMaxDepthUtil(ui32 depth, ui32& maxDepth) const;
+
 public:
-  Node* members = nullptr;
-  ui32 size = 0;
+  DirectoryTree mMembers;
 };

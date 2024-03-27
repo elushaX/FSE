@@ -6,7 +6,6 @@
 FileSystem::FileSystem() {
   root = new Directory();
   currentDirectory = root;
-  root->key = "/";
   initializeTransitions();
 }
 
@@ -64,7 +63,10 @@ void FileSystem::log() const {
 }
 
 
-void FileSystem::logNode(std::stringstream& ss, const Node* node, int depth, std::vector<bool>& indents) const {
+void FileSystem::logNode(std::stringstream& ss, const Node* node, const Key& key, int depth, std::vector<bool>& indents) const {
+  indent(ss, depth, indents);
+  ss << key << "\n";
+  
   switch (node->type) {
     case Node::DIRECTORY:
       return logDirectory(ss, (Directory*) node, depth, indents);
@@ -86,24 +88,26 @@ void FileSystem::indent(std::stringstream & ss, int depth, std::vector<bool>& in
 void FileSystem::logDirectory(std::stringstream & ss, const Directory* node, int depth, std::vector<bool>& indents) const {
   ss << (node == currentDirectory ? "* " : "  ");
   indent(ss, depth, indents);
-  ss << node->key << "\n";
+  // ss << node->key << "\n";
   indents[depth] = true;
   depth++;
+  /*
   auto lastNode = node->maxNode();
   node->traverseInorder([&](const Node* iterNode){
     if (lastNode == iterNode) indents[depth - 1] = false;
     logNode(ss, iterNode, depth, indents);
   });
+  */
 }
 
 void FileSystem::logFile(std::stringstream& ss, const File* node, int depth, std::vector<bool>& indents) const {
   indent(ss, depth, indents);
-  ss << node->key << "\n";
+  // ss << node->key << "\n";
 }
 
 void FileSystem::logLink(std::stringstream & ss, const Link* node, int depth, std::vector<bool>& indents) const {
   indent(ss, depth, indents);
-  ss << "link [" << node->key << "] \n";
+  // ss << "link [" << node->key << "] \n";
 }
 
 const std::string& FileSystem::getLastError() {
