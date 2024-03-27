@@ -26,6 +26,8 @@ public:
   Type type = NONE;
 
   void updateTreeCache();
+
+  virtual ~Node();
 };
 
 class File : public Node {
@@ -44,6 +46,7 @@ public:
 class Directory : public Node {
 public:
   Directory();
+  ~Directory();
 
   bool attachNode(const std::vector<Key>& directoryPath, const Key& newKey, Node* newNode);
   Node* findNode(const std::vector<Key>& path, ui32 currentDepth = 0);

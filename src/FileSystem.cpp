@@ -2,18 +2,17 @@
 #include "FileSystem.hpp"
 
 #include <iostream>
-#include <cassert>
 
 FileSystem::FileSystem() {
-    root = new Directory();
-    currentDirectory = root;
-    root->key = "/";
-    initializeTransitions();
-  }
+  root = new Directory();
+  currentDirectory = root;
+  root->key = "/";
+  initializeTransitions();
+}
 
 FileSystem::~FileSystem() {
-    delete root;
-  }
+  delete root;
+}
 
 bool FileSystem::makeDirectory(const Path& path) {
   if (path.getDepth() < 1 || path.isInvalid()) {
@@ -31,7 +30,11 @@ bool FileSystem::makeDirectory(const Path& path) {
   }
 
   auto newDirectory = new Directory();
-  assert(parentDirectory->attachNode(path.getParentChain(), path.getFilename(), newDirectory));
+  if (!parentDirectory->attachNode(path.getParentChain(), path.getFilename(), newDirectory)) {
+    delete newDirectory;
+    gError = "Creation of intermediate directories is not supported";
+    return false;
+  }
 
   return true;
 }

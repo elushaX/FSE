@@ -7,6 +7,11 @@ void Node::updateTreeCache() {
   // TODO update cache
 }
 
+Node::~Node() {
+  delete left;
+  delete right;
+}
+
 File::File() {
   type = Type::FILE;
 }
@@ -17,6 +22,10 @@ Link::Link() {
 
 Directory::Directory() {
   type = DIRECTORY;
+}
+
+Directory::~Directory() {
+  delete members;
 }
 
 bool Directory::attachNode(const std::vector<Key>& directoryPath, const Key& newKey, Node* newNode) {
