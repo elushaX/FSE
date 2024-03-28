@@ -68,6 +68,9 @@ Directory::~Directory() {
 
 bool Directory::attachNode(const std::vector<Key>& directoryPath, const Key& newKey, Node* newNode) {
   Node* node = findNode(directoryPath, 0);
+
+  while (node->mType == LINK) node = ((Link*)node)->getLink();
+
   if (!node || node->mType != DIRECTORY) {
     gError = "Invalid path";
     return false;
@@ -156,7 +159,15 @@ Node* Directory::findNode(const std::vector<Key>& path, ui32 currentDepth) {
 }
 
 void Directory::updateTreeLinkCount(Node* node) {
-  // TODO : update all caches all the way up to '/'
+  if (!node || !node->mTreeNode) return;
+
+  node->mTreeNode->key.updateTreeCacheCallBack(*node->mTreeNode);
+
+  if (node->mTreeNode->mParent) {
+    updateTreeLinkCount(node->mTreeNode->mParent->data);
+  } else {
+    updateTreeLinkCount(node->mParent);
+  }
 }
 
 void Directory::getMaxDepthUtil(ui32 depth, ui32& maxDepth) const {

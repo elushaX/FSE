@@ -212,7 +212,6 @@ private:
 
   inline Node* newNode(KeyArg key, DataArg data) {
     auto out = new Node(key, data);
-    out->updateTreeCacheCallBack();
     return out;
   }
 

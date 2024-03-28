@@ -24,6 +24,13 @@ int main() {
 
   interpreter.interpret("rd d");
   interpreter.interpret("deltree A123");
+  interpreter.interpret("deltree A123-copy");
+
+  interpreter.interpret("md a");
+  interpreter.interpret("md a/b");
+  interpreter.interpret("md a/b/c");
+  interpreter.interpret("mhl a /a/b/c/");
+  interpreter.interpret("md a/b/c/a/k");
 
   return UnitTest::RunAllTests();
 }

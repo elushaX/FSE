@@ -22,10 +22,7 @@ struct DirectoryKey {
   static inline const DirectoryKey& keyInLeftSubtree(const DirectoryKey& in) { return in; }
 
   template <typename NodeType>
-  inline void updateTreeCacheCallBack(NodeType& treeNode) {
-    treeNode.data->mTreeNode = &treeNode;
-    // TODO : update incoming links
-  }
+  inline void updateTreeCacheCallBack(NodeType& treeNode);
 
 public:
   Key val;
@@ -115,3 +112,41 @@ private:
 public:
   DirectoryTree mMembers;
 };
+
+
+template <typename NodeType>
+inline void DirectoryKey::updateTreeCacheCallBack(NodeType& treeNode) {
+  treeNode.data->mTreeNode = &treeNode;
+
+  incomingLinksHard = 0;
+  if (treeNode.mLeft) incomingLinksHard += treeNode.mLeft->key.incomingLinksHard;
+  if (treeNode.mRight) incomingLinksHard += treeNode.mRight->key.incomingLinksHard;
+
+  incomingLinksDynamic = 0;
+  if (treeNode.mLeft) incomingLinksDynamic += treeNode.mLeft->key.incomingLinksDynamic;
+  if (treeNode.mRight) incomingLinksDynamic += treeNode.mRight->key.incomingLinksDynamic;
+
+  switch (treeNode.data->mType) {
+    case Node::LINK: {
+      if (((Link*)treeNode.data)->isHard()) {
+        incomingLinksHard++;
+      } else {
+        incomingLinksDynamic++;
+      }
+      break;
+    }
+
+    case Node::DIRECTORY: {
+      auto directory = (Directory*)treeNode.data;
+      if (directory->mMembers.size()) {
+        const auto& rootKey = directory->mMembers.getRoot()->key;
+        incomingLinksDynamic += rootKey.incomingLinksDynamic;
+        incomingLinksHard += rootKey.incomingLinksHard;
+      }
+      break;
+    }
+
+    default:
+      break;
+  }
+}
