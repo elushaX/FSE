@@ -25,8 +25,10 @@ public:
   ~FileSystem();
 
   bool makeDirectory(const Path& path);
+  bool makeFile(const Path& path);
   bool changeCurrent(const Path& path);
-  bool removeDirectory(const Path& path);
+  bool removeDirectory(const Path& path, bool recursively);
+  bool removeFileOrLink(const Path& path);
 
   void log() const;
 

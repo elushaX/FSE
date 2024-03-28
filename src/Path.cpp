@@ -8,7 +8,7 @@ void initializeTransitions() {
   std::fill(transitions.begin(), transitions.end(), 1);
   for (char i = 'a'; i <= 'z'; i++) transitions[i] = i;
   for (char i = '0'; i <= '9'; i++) transitions[i] = i;
-  for (char i = 'A'; i <= 'Z'; i++) transitions[i] = i + ('a' - 'A');
+  for (char i = 'A'; i <= 'Z'; i++) transitions[i] = i /* + ('a' - 'A')*/;
   transitions['/'] = '/';
   transitions['.'] = '.';
 }

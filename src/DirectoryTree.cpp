@@ -171,3 +171,7 @@ void Directory::getNodePath(Node* node, std::vector<const Key*>& path) const {
   path.push_back(&node->mTreeNode->key.val);
   getNodePath(node->mParent, path);
 }
+
+ui64 Directory::size() const {
+  return mMembers.size();
+}

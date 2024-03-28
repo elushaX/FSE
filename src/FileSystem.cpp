@@ -24,21 +24,46 @@ bool FileSystem::makeDirectory(const Path& path) {
   auto existingNode = parentDirectory->findNode(path.getChain());
   if (existingNode) {
     if (existingNode->mType == Node::DIRECTORY) return true;
-    gError = "Cant create directory, such node exists";
+    gError = "Can not create directory, such node exists";
     return false;
   }
 
   auto newDirectory = new Directory();
   if (!parentDirectory->attachNode(path.getParentChain(), path.getFilename(), newDirectory)) {
     delete newDirectory;
-    gError = "Creation of intermediate directories is not supported";
+    gError = "Invalid path";
     return false;
   }
 
   return true;
 }
 
-bool FileSystem::removeDirectory(const Path& path) {
+bool FileSystem::makeFile(const Path& path) {
+  if (path.getDepth() < 1 || path.isInvalid()) {
+    gError = "Invalid path";
+    return false;
+  }
+
+  Directory* parentDirectory = path.isAbsolute() ? root : currentDirectory;
+
+  auto existingNode = parentDirectory->findNode(path.getChain());
+  if (existingNode) {
+    if (existingNode->mType == Node::FILE) return true;
+    gError = "Can not create file, such node exists";
+    return false;
+  }
+
+  auto newFile = new File();
+  if (!parentDirectory->attachNode(path.getParentChain(), path.getFilename(), newFile)) {
+    delete newFile;
+    gError = "Invalid path";
+    return false;
+  }
+
+  return true;
+}
+
+bool FileSystem::removeDirectory(const Path& path, bool recursively) {
   if (path.getDepth() < 1 || path.isInvalid()) {
     gError = "Invalid path";
     return false;
@@ -52,8 +77,43 @@ bool FileSystem::removeDirectory(const Path& path) {
     return false;
   }
 
+  if (existingNode->mType != Node::DIRECTORY) {
+    gError = "Path is not a directory";
+    return false;
+  }
+
+  if (!recursively && existingNode->mType == Node::DIRECTORY && ((Directory*)existingNode)->size()) {
+    gError = "Directory is not empty";
+    return false;
+  }
+
   if (isPathContainsCurrent(existingNode)) {
     gError = "Can not remove directory you are currently working in";
+    return false;
+  }
+
+  assert(parentDirectory->detachNode(path.getParentChain(), path.getFilename()));
+
+  delete existingNode;
+  return true;
+}
+
+bool FileSystem::removeFileOrLink(const Path &path) {
+  if (path.getDepth() < 1 || path.isInvalid()) {
+    gError = "Invalid path";
+    return false;
+  }
+
+  Directory* parentDirectory = path.isAbsolute() ? root : currentDirectory;
+
+  auto existingNode = parentDirectory->findNode(path.getChain());
+  if (!existingNode) {
+    gError = "Cant remove, such node doesnt exists";
+    return false;
+  }
+
+  if (existingNode->mType == Node::DIRECTORY) {
+    gError = "Path is a directory";
     return false;
   }
 

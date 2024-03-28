@@ -30,7 +30,31 @@ Interpreter::Interpreter() {
       "remove directory",
       1,
       [](FileSystem& filesystem, const std::vector<std::string>& args){
-        return filesystem.removeDirectory(args[1]);
+        return filesystem.removeDirectory(args[1], false);
+      }
+  };
+
+  mCommands["deltree"] = {
+      "remove directory recursively",
+      1,
+      [](FileSystem& filesystem, const std::vector<std::string>& args){
+        return filesystem.removeDirectory(args[1], true);
+      }
+  };
+
+  mCommands["mf"] = {
+      "make file",
+      1,
+      [](FileSystem& filesystem, const std::vector<std::string>& args){
+        return filesystem.makeFile(args[1]);
+      }
+  };
+
+  mCommands["del"] = {
+      "remove file or link",
+      1,
+      [](FileSystem& filesystem, const std::vector<std::string>& args){
+        return filesystem.removeFileOrLink(args[1]);
       }
   };
 }

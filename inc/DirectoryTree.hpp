@@ -83,6 +83,8 @@ public:
   }
 
   void getNodePath(Node* node, std::vector<const Key*>& path) const;
+  ui64 size() const;
+
 private:
   void updateTreeLinkCount(Node* node);
   void getMaxDepthUtil(ui32 depth, ui32& maxDepth) const;
