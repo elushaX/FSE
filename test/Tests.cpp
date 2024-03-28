@@ -34,6 +34,9 @@ int main() {
   interpreter.interpret("copy a /");
 
   interpreter.interpret("mdl a/b/c /a-copy/k");
+
+  interpreter.interpret("move a/b/c /a-copy");
+
   interpreter.interpret("del /a-copy/k/c");
 
   return UnitTest::RunAllTests();

@@ -170,7 +170,10 @@ bool FileSystem::moveNode(const Path &source, const Path &target) {
     return false;
   }
 
-  assert(sourceParentDirectory->detachNode(key));
+  if (!sourceParentDirectory->detachNode(key)) {
+    return false;
+  }
+
   assert(targetDirectory->attachNode(key, sourceNode));
 
   return true;

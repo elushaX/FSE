@@ -127,6 +127,11 @@ bool Directory::detachNode(const Key& key) {
     return false;
   }
 
+  if (removeNode->key.incomingLinksHard || removeNode->key.incomingLinksDynamic) {
+    gError = "Cannot modify node with incoming hard links";
+    return false;
+  }
+
   removeNode->mParent = nullptr;
   mMembers.remove(DirectoryKey(key));
 
