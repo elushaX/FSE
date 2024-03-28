@@ -52,6 +52,11 @@ bool FileSystem::removeDirectory(const Path& path) {
     return false;
   }
 
+  if (isPathContainsCurrent(existingNode)) {
+    gError = "Can not remove directory you are currently working in";
+    return false;
+  }
+
   assert(parentDirectory->detachNode(path.getParentChain(), path.getFilename()));
 
   delete existingNode;
@@ -93,4 +98,25 @@ void FileSystem::log() const {
 
 const std::string& FileSystem::getLastError() {
   return gError;
+}
+
+bool FileSystem::isPathContainsCurrent(Node* node) {
+  std::vector<const Key*> currentPath;
+  std::vector<const Key*> path;
+
+  root->getNodePath(currentDirectory, currentPath);
+  root->getNodePath(node, path);
+
+  std::reverse(currentPath.begin(), currentPath.end());
+  std::reverse(path.begin(), path.end());
+
+  if (path.size() > currentPath.size()) {
+    return false;
+  }
+
+  for (ui32 i = 0; i < path.size(); i++) {
+    if (path[i] != currentPath[i]) return false;
+  }
+
+  return true;
 }

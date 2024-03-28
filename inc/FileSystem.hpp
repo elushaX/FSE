@@ -33,6 +33,9 @@ public:
   const std::string& getLastError();
 
 private:
+  bool isPathContainsCurrent(Node* node);
+
+private:
   Directory* root = nullptr;
   Directory* currentDirectory = nullptr;
 };

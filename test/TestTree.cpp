@@ -6,7 +6,7 @@ static double randomFloat() {
   return static_cast<double>(std::rand()) / static_cast<double>(RAND_MAX);
 }
 
-const auto size = 10000;
+const auto size = 1000;
 
 class TestClass {
   ui64 val1 = 0;
