@@ -9,6 +9,33 @@
 extern std::string gError;
 typedef std::string Key;
 
+struct DirectoryKey {
+  DirectoryKey() = default;
+  explicit DirectoryKey(Key val) : val(std::move(val)) {}
+
+  [[nodiscard]] inline bool descentRight(const DirectoryKey& in) const { return in.val > val; }
+  [[nodiscard]] inline bool descentLeft(const DirectoryKey& in) const { return in.val < val; }
+  [[nodiscard]] inline bool exactNode(const DirectoryKey& in) const { return in.val == val; }
+
+  [[nodiscard]] inline const DirectoryKey& getFindKey() const { return *this; }
+  static inline const DirectoryKey& keyInRightSubtree(const DirectoryKey& in) { return in; }
+  static inline const DirectoryKey& keyInLeftSubtree(const DirectoryKey& in) { return in; }
+
+  template <typename NodeType>
+  inline void updateTreeCacheCallBack(NodeType& treeNode) {
+    treeNode.data->mTreeNode = &treeNode;
+    // TODO : update incoming links
+  }
+
+public:
+  Key val;
+
+  ui32 incomingLinksHard = 0;
+  ui32 incomingLinksDynamic = 0;
+};
+
+typedef AvlTree<DirectoryKey, class Node*> DirectoryTree;
+
 class Node {
 public:
   enum Type : ui32 { NONE, DIRECTORY, FILE, LINK } ;
@@ -18,6 +45,8 @@ public:
 
 public:
   Type mType = NONE;
+  Node* mParent = nullptr;
+  DirectoryTree::Node* mTreeNode = nullptr;
 };
 
 class File : public Node {
@@ -35,33 +64,7 @@ private:
   bool mIsHard = false;
 };
 
-struct DirectoryKey {
-  DirectoryKey() = default;
-  explicit DirectoryKey(Key val) : val(std::move(val)) {}
-
-  [[nodiscard]] inline bool descentRight(const DirectoryKey& in) const { return in.val > val; }
-  [[nodiscard]] inline bool descentLeft(const DirectoryKey& in) const { return in.val < val; }
-  [[nodiscard]] inline bool exactNode(const DirectoryKey& in) const { return in.val == val; }
-
-  [[nodiscard]] inline const DirectoryKey& getFindKey() const { return *this; }
-  static inline const DirectoryKey& keyInRightSubtree(const DirectoryKey& in) { return in; }
-  static inline const DirectoryKey& keyInLeftSubtree(const DirectoryKey& in) { return in; }
-
-  template <typename NodeType>
-  inline void updateTreeCacheCallBack(const NodeType&) {
-    // TODO : update incoming links
-  }
-
-public:
-  Key val;
-
-  ui32 incomingLinksHard = 0;
-  ui32 incomingLinksDynamic = 0;
-};
-
 class Directory : public Node {
-  typedef AvlTree<DirectoryKey, class Node*> DirectoryTree;
-
 public:
   Directory();
   ~Directory() override;
@@ -79,6 +82,7 @@ public:
     mMembers.traverseInorder(mMembers.getRoot(), functor);
   }
 
+  void getNodePath(Node* node, std::vector<const Key*>& path) const;
 private:
   void updateTreeLinkCount(Node* node);
   void getMaxDepthUtil(ui32 depth, ui32& maxDepth) const;

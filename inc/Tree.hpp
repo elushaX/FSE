@@ -211,12 +211,16 @@ private:
   }
 
   inline Node* newNode(KeyArg key, DataArg data) {
-    return new Node(key, data);
+    auto out = new Node(key, data);
+    out->updateTreeCacheCallBack();
+    return out;
   }
 
   inline void injectNodeInstead(Node* target, Node* from) {
-    target->data = from->data;
+    std::swap(target->data, from->data);
     target->key = from->key;
+    target->updateTreeCacheCallBack();
+    from->updateTreeCacheCallBack();
   }
 
   inline i64 getNodeHeight(const Node* node) const { return node ? node->mHeight : -1; }

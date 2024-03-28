@@ -76,7 +76,17 @@ bool FileSystem::changeCurrent(const Path& path) {
 
 void FileSystem::log() const {
   std::stringstream ss;
-  ss << " *\n";
+
+  std::vector<const Key*> currentPath;
+  root->getNodePath(currentDirectory, currentPath);
+  std::reverse(currentPath.begin(), currentPath.end());
+
+  ss << "cd - /";
+  for (auto key : currentPath) {
+    ss << *key << "/";
+  }
+
+  ss << "\n";
   root->dump(ss);
   std::cout << ss.str();
 }

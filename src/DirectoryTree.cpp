@@ -47,6 +47,7 @@ bool Directory::attachNode(const std::vector<Key>& directoryPath, const Key& new
 
   directory->mMembers.insert(DirectoryKey(newKey), newNode);
 
+  newNode->mParent = directory;
   updateTreeLinkCount(directory);
   return true;
 }
@@ -67,6 +68,7 @@ bool Directory::detachNode(const std::vector<Key>& directoryPath, const Key& key
   }
 
   directory->mMembers.remove(DirectoryKey(key));
+  removeNode->mParent = nullptr;
 
   updateTreeLinkCount(directory);
   return true;
@@ -129,9 +131,7 @@ ui32 Directory::getMaxDepth() const {
 void Directory::dump(std::stringstream& ss) {
   std::vector<bool> indents;
   indents.resize(getMaxDepth());
-
   dumpUtil(ss, 0, indents);
-
   ss << "\n";
 }
 
@@ -164,4 +164,10 @@ void Directory::dumpUtil(std::stringstream& ss, ui32 currentDepth, std::vector<b
         return;
     }
   });
+}
+
+void Directory::getNodePath(Node* node, std::vector<const Key*>& path) const {
+  if (!node || !node->mTreeNode) return;
+  path.push_back(&node->mTreeNode->key.val);
+  getNodePath(node->mParent, path);
 }
