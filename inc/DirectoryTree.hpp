@@ -63,12 +63,14 @@ public:
 
 class Link : public Node {
 public:
-  Link();
+  Link(Node* target, bool isHard);
   Link(const Link& node);
 
   [[nodiscard]] Link* clone() const override;
 
   [[nodiscard]] Node* getLink() const;
+  [[nodiscard]] bool isHard() const;
+  void setHard(bool);
 
 private:
   Node* mLink = nullptr;
@@ -103,7 +105,7 @@ public:
   }
 
   void getNodePath(Node* node, std::vector<const Key*>& path) const;
-  ui64 size() const;
+  [[nodiscard]] ui64 size() const;
 
 private:
   void updateTreeLinkCount(Node* node);

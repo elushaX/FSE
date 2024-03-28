@@ -4,6 +4,7 @@
 #include <sstream>
 
 std::string gError;
+bool gDebug = true;
 
 Node::~Node() = default;
 
@@ -27,12 +28,23 @@ File *File::clone() const {
   return new File(*this);
 }
 
-Link::Link() {
+Link::Link(Node* target, bool isHard) {
   mType = LINK;
+  mIsHard = isHard;
+  mLink = target;
 }
 
 Node *Link::getLink() const {
   return mLink;
+}
+
+bool Link::isHard() const {
+  return mIsHard;
+}
+
+void Link::setHard(bool val) {
+  mIsHard = val;
+  // TODO : do we need to update cache here?
 }
 
 Link::Link(const Link &node) : Node(node) {
@@ -133,6 +145,7 @@ Node* Directory::findNode(const std::vector<Key>& path, ui32 currentDepth) {
         return ((Directory*)node)->findNode(path, ++currentDepth);
 
       case Node::LINK:
+        if (currentDepth == path.size() - 1) return node;
         node = ((Link*)node)->getLink();
         break;
 
@@ -186,15 +199,34 @@ void Directory::dumpUtil(std::stringstream& ss, ui32 currentDepth, std::vector<b
     if (lastNode == node) indents[currentDepth - 1] = false;
 
     indent(ss, currentDepth, indents);
-    ss << node->key.val << "\n";
 
     switch (node->data->mType) {
       case Node::DIRECTORY:
+        ss << node->key.val;
+        if (gDebug)  ss << " [" << node->key.incomingLinksHard << ":" << node->key.incomingLinksDynamic << "]";
+        ss << "\n";
         ((Directory*) node->data)->dumpUtil(ss, currentDepth, indents);
         return;
 
+      case Node::LINK: {
+        auto linkNode = ((Link*)node->data);
+        ss << node->key.val << (linkNode->isHard() ?  " hlink[/" : " dlink[/");
+        std::vector<const Key*> path;
+        getNodePath(linkNode->getLink(), path);
+        std::reverse(path.begin(), path.end());
+        for (auto key : path) ss << *key << "/";
+        ss << "]\n";
+        return;
+      }
+
+      case Node::FILE:
+        ss << node->key.val;
+        if (gDebug) ss << " [file]";
+        ss << "\n";
+        return;
+
       default:
-        // do nothing for now
+        ss << " ERROR \n";
         return;
     }
   });
@@ -212,8 +244,12 @@ ui64 Directory::size() const {
 
 Directory::Directory(const Directory &node) : Node(node) {
   node.traverseInorder([&](const DirectoryTree::Node* node){
-    mMembers.insert(node->key, node->data->clone());
+    auto newNode = node->data->clone();
+    mMembers.insert(node->key, newNode);
+    newNode->mParent = this;
   });
+
+  updateTreeLinkCount(this);
 }
 
 Directory *Directory::clone() const {

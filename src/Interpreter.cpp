@@ -73,6 +73,22 @@ Interpreter::Interpreter() {
         return filesystem.moveNode(args[1], args[2]);
       }
   };
+
+  mCommands["mhl"] = {
+      "make hard link",
+      2,
+      [](FileSystem& filesystem, const std::vector<std::string>& args){
+        return filesystem.makeLink(args[1], args[2], false);
+      }
+  };
+
+  mCommands["mdl"] = {
+      "make dynamic link",
+      2,
+      [](FileSystem& filesystem, const std::vector<std::string>& args){
+        return filesystem.makeLink(args[1], args[2], true);
+      }
+  };
 }
 
 void Interpreter::reportError(const std::string& description) {
@@ -116,7 +132,7 @@ void Interpreter::interpret(const std::string& command) {
   bool success = iter->second.callback(mFileSystem, words);
 
   if (!success) {
-    reportError(mFileSystem.getLastError());
+    reportError(FileSystem::getLastError());
     return;
   }
 

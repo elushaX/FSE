@@ -176,6 +176,48 @@ bool FileSystem::moveNode(const Path &source, const Path &target) {
   return true;
 }
 
+bool FileSystem::makeLink(const Path& source, const Path& target, bool isDynamic) {
+  if (source.getDepth() < 1 || source.isInvalid()) {
+    gError = "Invalid source path";
+    return false;
+  }
+
+  // TODO : remove code duplication
+  Directory* workingDirectorySource = source.isAbsolute() ? root : currentDirectory;
+  Directory* workingDirectoryTarget = target.isAbsolute() ? root : currentDirectory;
+
+  auto sourceNode = workingDirectorySource->findNode(source.getChain());
+  if (!sourceNode) {
+    gError = "Invalid source path";
+    return false;
+  }
+
+  if (sourceNode->mType == Node::LINK) {
+    gError = "Link on link is not allowed";
+    return false;
+  }
+
+  auto targetNode = workingDirectoryTarget->findNode(target.getChain());
+  if (!targetNode || targetNode->mType != Node::DIRECTORY) {
+    gError = "Invalid target directory";
+    return false;
+  }
+
+  const Key& key = sourceNode->mTreeNode->key.val;
+  auto targetDirectory = (Directory*)targetNode;
+
+  if (targetDirectory->findNode(key)) {
+    gError = "Node with such name already exists in the target directory";
+    return false;
+  }
+
+  auto newLink = new Link(sourceNode, !isDynamic);
+
+  assert(targetDirectory->attachNode(key, newLink));
+
+  return true;
+}
+
 bool FileSystem::removeFileOrLink(const Path &path) {
   if (path.getDepth() < 1 || path.isInvalid()) {
     gError = "Invalid path";

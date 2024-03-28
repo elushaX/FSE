@@ -29,10 +29,11 @@ public:
   bool removeFileOrLink(const Path& path);
   bool copyNode(const Path& source, const Path& to);
   bool moveNode(const Path& source, const Path& to);
+  bool makeLink(const Path& source, const Path& to, bool isDynamic);
 
   void log() const;
 
-  const std::string& getLastError();
+  static const std::string& getLastError();
 
 private:
   bool isPathContainsCurrent(Node* node);
