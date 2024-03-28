@@ -32,6 +32,12 @@ Link::Link(Node* target, bool isHard) {
   mType = LINK;
   mIsHard = isHard;
   mLink = target;
+
+  if (mIsHard) {
+    target->mIncomingHardLinks.push_back(this);
+  } else {
+    target->mIncomingDynamicLinks.push_back(this);
+  }
 }
 
 Node *Link::getLink() const {
@@ -42,18 +48,28 @@ bool Link::isHard() const {
   return mIsHard;
 }
 
-void Link::setHard(bool val) {
-  mIsHard = val;
-  // TODO : do we need to update cache here?
-}
-
 Link::Link(const Link &node) : Node(node) {
   mLink = node.mLink;
   mIsHard = node.mIsHard;
+
+  assert(mLink);
+  if (mIsHard) {
+    mLink->mIncomingHardLinks.push_back(this);
+  } else {
+    mLink->mIncomingDynamicLinks.push_back(this);
+  }
 }
 
 Link *Link::clone() const {
   return new Link(*this);
+}
+
+Link::~Link() {
+  assert(mLink);
+  auto& links = mIsHard ? mLink->mIncomingHardLinks : mLink->mIncomingDynamicLinks;
+  links.erase(std::remove(links.begin(), links.end(), this), links.end());
+  Directory::updateTreeLinkCount(mLink);
+  mLink = nullptr;
 }
 
 Directory::Directory() {
@@ -69,7 +85,7 @@ Directory::~Directory() {
 bool Directory::attachNode(const std::vector<Key>& directoryPath, const Key& newKey, Node* newNode) {
   Node* node = findNode(directoryPath, 0);
 
-  while (node->mType == LINK) node = ((Link*)node)->getLink();
+  while (node && node->mType == LINK) node = ((Link*)node)->getLink();
 
   if (!node || node->mType != DIRECTORY) {
     gError = "Invalid path";
@@ -258,6 +274,9 @@ Directory::Directory(const Directory &node) : Node(node) {
     auto newNode = node->data->clone();
     mMembers.insert(node->key, newNode);
     newNode->mParent = this;
+    if (newNode->mType == LINK) {
+      updateTreeLinkCount(((Link*)newNode)->getLink());
+    }
   });
 
   updateTreeLinkCount(this);

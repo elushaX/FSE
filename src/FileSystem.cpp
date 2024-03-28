@@ -215,6 +215,8 @@ bool FileSystem::makeLink(const Path& source, const Path& target, bool isDynamic
 
   assert(targetDirectory->attachNode(key, newLink));
 
+  Directory::updateTreeLinkCount(sourceNode);
+
   return true;
 }
 

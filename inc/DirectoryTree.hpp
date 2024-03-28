@@ -48,6 +48,9 @@ public:
   Type mType = NONE;
   Node* mParent = nullptr;
   DirectoryTree::Node* mTreeNode = nullptr;
+
+  std::vector<class Link*> mIncomingHardLinks;
+  std::vector<class Link*> mIncomingDynamicLinks;
 };
 
 class File : public Node {
@@ -62,12 +65,12 @@ class Link : public Node {
 public:
   Link(Node* target, bool isHard);
   Link(const Link& node);
+  ~Link() override;
 
   [[nodiscard]] Link* clone() const override;
 
   [[nodiscard]] Node* getLink() const;
   [[nodiscard]] bool isHard() const;
-  void setHard(bool);
 
 private:
   Node* mLink = nullptr;
@@ -104,8 +107,9 @@ public:
   void getNodePath(Node* node, std::vector<const Key*>& path) const;
   [[nodiscard]] ui64 size() const;
 
+  static void updateTreeLinkCount(Node* node);
+
 private:
-  void updateTreeLinkCount(Node* node);
   void getMaxDepthUtil(ui32 depth, ui32& maxDepth) const;
   void dumpUtil(std::stringstream& ss, ui32 currentDepth, std::vector<bool>& indents);
 
@@ -126,27 +130,15 @@ inline void DirectoryKey::updateTreeCacheCallBack(NodeType& treeNode) {
   if (treeNode.mLeft) incomingLinksDynamic += treeNode.mLeft->key.incomingLinksDynamic;
   if (treeNode.mRight) incomingLinksDynamic += treeNode.mRight->key.incomingLinksDynamic;
 
-  switch (treeNode.data->mType) {
-    case Node::LINK: {
-      if (((Link*)treeNode.data)->isHard()) {
-        incomingLinksHard++;
-      } else {
-        incomingLinksDynamic++;
-      }
-      break;
-    }
+  incomingLinksHard += treeNode.data->mIncomingHardLinks.size();
+  incomingLinksDynamic += treeNode.data->mIncomingDynamicLinks.size();
 
-    case Node::DIRECTORY: {
-      auto directory = (Directory*)treeNode.data;
-      if (directory->mMembers.size()) {
-        const auto& rootKey = directory->mMembers.getRoot()->key;
-        incomingLinksDynamic += rootKey.incomingLinksDynamic;
-        incomingLinksHard += rootKey.incomingLinksHard;
-      }
-      break;
+  if (treeNode.data->mType == Node::DIRECTORY) {
+    auto directory = (Directory*)treeNode.data;
+    if (directory->mMembers.size()) {
+      const auto& rootKey = directory->mMembers.getRoot()->key;
+      incomingLinksDynamic += rootKey.incomingLinksDynamic;
+      incomingLinksHard += rootKey.incomingLinksHard;
     }
-
-    default:
-      break;
   }
 }

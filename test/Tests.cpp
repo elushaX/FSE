@@ -31,6 +31,10 @@ int main() {
   interpreter.interpret("md a/b/c");
   interpreter.interpret("mhl a /a/b/c/");
   interpreter.interpret("md a/b/c/a/k");
+  interpreter.interpret("copy a /");
+
+  interpreter.interpret("mdl a/b/c /a-copy/k");
+  interpreter.interpret("del /a-copy/k/c");
 
   return UnitTest::RunAllTests();
 }
