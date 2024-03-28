@@ -29,6 +29,7 @@ public:
   bool changeCurrent(const Path& path);
   bool removeDirectory(const Path& path, bool recursively);
   bool removeFileOrLink(const Path& path);
+  bool copyNode(const Path& source, const Path& to);
 
   void log() const;
 

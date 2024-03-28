@@ -41,7 +41,11 @@ public:
   enum Type : ui32 { NONE, DIRECTORY, FILE, LINK } ;
 
 public:
+  Node() = default;
+  Node(const Node& node);
   virtual ~Node();
+
+  [[nodiscard]] virtual Node* clone() const;
 
 public:
   Type mType = NONE;
@@ -52,11 +56,18 @@ public:
 class File : public Node {
 public:
   File();
+  File(const File& node);
+
+  [[nodiscard]] File* clone() const override;
 };
 
 class Link : public Node {
 public:
   Link();
+  Link(const Link& node);
+
+  [[nodiscard]] Link* clone() const override;
+
   [[nodiscard]] Node* getLink() const;
 
 private:
@@ -67,13 +78,20 @@ private:
 class Directory : public Node {
 public:
   Directory();
+  Directory(const Directory& node);
+
   ~Directory() override;
+
+  [[nodiscard]] Directory* clone() const override;
 
   void dump(std::stringstream& ss);
 
   bool attachNode(const std::vector<Key>& directoryPath, const Key& newKey, Node* newNode);
   bool detachNode(const std::vector<Key>& directoryPath, const Key& key);
+
+  bool attachNode(const Key &newKey, Node *newNode);
   Node* findNode(const std::vector<Key>& path, ui32 currentDepth = 0);
+  Node* findNode(const Key& path);
 
   [[nodiscard]] ui32 getMaxDepth() const;
 

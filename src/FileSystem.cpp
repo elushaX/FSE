@@ -98,6 +98,43 @@ bool FileSystem::removeDirectory(const Path& path, bool recursively) {
   return true;
 }
 
+bool FileSystem::copyNode(const Path& source, const Path& target) {
+  if (source.getDepth() < 1 || source.isInvalid()) {
+    gError = "Invalid source path";
+    return false;
+  }
+
+  Directory* workingDirectorySource = source.isAbsolute() ? root : currentDirectory;
+  Directory* workingDirectoryTarget = target.isAbsolute() ? root : currentDirectory;
+
+  auto sourceNode = workingDirectorySource->findNode(source.getChain());
+  if (!sourceNode) {
+    gError = "Invalid source path";
+    return false;
+  }
+
+  auto targetNode = workingDirectoryTarget->findNode(target.getChain());
+  if (!targetNode || targetNode->mType != Node::DIRECTORY) {
+    gError = "Invalid target directory";
+    return false;
+  }
+
+  auto targetDirectory = (Directory*)targetNode;
+
+  Key key = sourceNode->mTreeNode->key.val;
+
+  if (targetDirectory->findNode(key)) {
+    // gError = "Node with such name already exists in the target directory";
+    // return false;
+    key += "-copy";
+  }
+
+  Node* clonedNode = sourceNode->clone();
+  assert(targetDirectory->attachNode(key, clonedNode));
+
+  return true;
+}
+
 bool FileSystem::removeFileOrLink(const Path &path) {
   if (path.getDepth() < 1 || path.isInvalid()) {
     gError = "Invalid path";

@@ -7,8 +7,24 @@ std::string gError;
 
 Node::~Node() = default;
 
+Node::Node(const Node &node) {
+  mType = node.mType;
+}
+
+Node *Node::clone() const {
+  return new Node(*this);
+}
+
 File::File() {
   mType = Type::FILE;
+}
+
+File::File(const File& node) : Node(node) {
+  // nothing to do
+}
+
+File *File::clone() const {
+  return new File(*this);
 }
 
 Link::Link() {
@@ -17,6 +33,15 @@ Link::Link() {
 
 Node *Link::getLink() const {
   return mLink;
+}
+
+Link::Link(const Link &node) : Node(node) {
+  mLink = node.mLink;
+  mIsHard = node.mIsHard;
+}
+
+Link *Link::clone() const {
+  return new Link(*this);
 }
 
 Directory::Directory() {
@@ -36,19 +61,21 @@ bool Directory::attachNode(const std::vector<Key>& directoryPath, const Key& new
     return false;
   }
 
-  auto directory = ((Directory*) node);
+  return ((Directory*) node)->attachNode(newKey, newNode);
+}
 
-  DirectoryTree::Node* iterNode = directory->mMembers.find(DirectoryKey(newKey));
+bool Directory::attachNode(const Key &newKey, Node *newNode) {
+  DirectoryTree::Node* iterNode = mMembers.find(DirectoryKey(newKey));
   if (iterNode) {
     if (iterNode->data->mType == newNode->mType) return false; // exit silently
-    gError = "Cant add node";
+    gError = "Can not add node";
     return false;
   }
 
-  directory->mMembers.insert(DirectoryKey(newKey), newNode);
+  mMembers.insert(DirectoryKey(newKey), newNode);
 
-  newNode->mParent = directory;
-  updateTreeLinkCount(directory);
+  newNode->mParent = this;
+  updateTreeLinkCount(this);
   return true;
 }
 
@@ -67,11 +94,16 @@ bool Directory::detachNode(const std::vector<Key>& directoryPath, const Key& key
     return false;
   }
 
-  directory->mMembers.remove(DirectoryKey(key));
   removeNode->mParent = nullptr;
+  directory->mMembers.remove(DirectoryKey(key));
 
   updateTreeLinkCount(directory);
   return true;
+}
+
+Node* Directory::findNode(const Key& key) {
+  DirectoryTree::Node* iterNode = mMembers.find(DirectoryKey(key));
+  return iterNode ? iterNode->data : nullptr;
 }
 
 Node* Directory::findNode(const std::vector<Key>& path, ui32 currentDepth) {
@@ -140,7 +172,7 @@ static void indent(std::stringstream & ss, ui32 depth, std::vector<bool>& indent
   for (auto i  = 0; i < depth - 1; i++) {
     ss << (indents[i] ? " |" : "  ");
   }
-  ss << " |_";
+  ss << " |_ ";
 }
 
 void Directory::dumpUtil(std::stringstream& ss, ui32 currentDepth, std::vector<bool>& indents) {
@@ -174,4 +206,14 @@ void Directory::getNodePath(Node* node, std::vector<const Key*>& path) const {
 
 ui64 Directory::size() const {
   return mMembers.size();
+}
+
+Directory::Directory(const Directory &node) : Node(node) {
+  node.traverseInorder([&](const DirectoryTree::Node* node){
+    mMembers.insert(node->key, node->data->clone());
+  });
+}
+
+Directory *Directory::clone() const {
+  return new Directory(*this);
 }

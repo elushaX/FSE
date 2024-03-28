@@ -57,6 +57,14 @@ Interpreter::Interpreter() {
         return filesystem.removeFileOrLink(args[1]);
       }
   };
+
+  mCommands["copy"] = {
+      "recursive copy of a node",
+      2,
+      [](FileSystem& filesystem, const std::vector<std::string>& args){
+        return filesystem.copyNode(args[1], args[2]);
+      }
+  };
 }
 
 void Interpreter::reportError(const std::string& description) {

@@ -18,7 +18,12 @@ int main() {
 
   interpreter.interpret("cd asd/b/c/d");
 
+  interpreter.interpret("cd /");
+
+  interpreter.interpret("copy A123 / ");
+
   interpreter.interpret("rd d");
+  interpreter.interpret("deltree A123");
 
   return UnitTest::RunAllTests();
 }
