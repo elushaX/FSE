@@ -86,18 +86,20 @@ bool Directory::detachNode(const std::vector<Key>& directoryPath, const Key& key
     return false;
   }
 
-  auto directory = ((Directory*) node);
+  return ((Directory*) node)->detachNode(key);
+}
 
-  DirectoryTree::Node* removeNode = directory->mMembers.find(DirectoryKey(key));
+bool Directory::detachNode(const Key& key) {
+  DirectoryTree::Node* removeNode = mMembers.find(DirectoryKey(key));
   if (!removeNode) {
     gError = "Invalid path";
     return false;
   }
 
   removeNode->mParent = nullptr;
-  directory->mMembers.remove(DirectoryKey(key));
+  mMembers.remove(DirectoryKey(key));
 
-  updateTreeLinkCount(directory);
+  updateTreeLinkCount(this);
   return true;
 }
 

@@ -6,14 +6,12 @@
 #include <sstream>
 
 // Functionality:
-// - add node to path conversion
-// - check for current node deletion
-// - print current node
 // - print links and link counts
 // - update link counts
 // - add link creation commands
 
 // Refactor
+// - remove code duplication
 // - Move DirectoryKey inside Node (no need to store pointers from Node to DirectoryTree::Node)
 // - Merge DirectoryTree::Node and Node (no pointer overhead, requires tree nodes to be consistent, check insertNodeInstead)
 // - introduce smart pointers
@@ -30,6 +28,7 @@ public:
   bool removeDirectory(const Path& path, bool recursively);
   bool removeFileOrLink(const Path& path);
   bool copyNode(const Path& source, const Path& to);
+  bool moveNode(const Path& source, const Path& to);
 
   void log() const;
 

@@ -89,7 +89,9 @@ public:
   bool attachNode(const std::vector<Key>& directoryPath, const Key& newKey, Node* newNode);
   bool detachNode(const std::vector<Key>& directoryPath, const Key& key);
 
+  bool detachNode(const Key& key);
   bool attachNode(const Key &newKey, Node *newNode);
+
   Node* findNode(const std::vector<Key>& path, ui32 currentDepth = 0);
   Node* findNode(const Key& path);
 
