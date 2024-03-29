@@ -2,6 +2,8 @@
 #include "FileSystem.hpp"
 
 #include <iostream>
+#include <cassert>
+#include <algorithm>
 
 FileSystem::FileSystem() {
   root = new Directory();
@@ -122,7 +124,7 @@ bool FileSystem::copyNode(const Path& source, const Path& target) {
 
   auto targetDirectory = (Directory*)targetNode;
 
-  Key key = sourceNode->mTreeNode->key.val;
+  Key key = source.getFilename();
 
   if (targetDirectory->findNode(key)) {
     // gError = "Node with such name already exists in the target directory";
@@ -163,7 +165,7 @@ bool FileSystem::moveNode(const Path &source, const Path &target) {
   auto sourceParentDirectory = (Directory*)sourceParentNode;
   auto targetDirectory = (Directory*)targetNode;
 
-  Key key = sourceNode->mTreeNode->key.val;
+  Key key = source.getFilename();
 
   if (targetDirectory->findNode(key)) {
     gError = "Node with such name already exists in the target directory";
@@ -206,7 +208,7 @@ bool FileSystem::makeLink(const Path& source, const Path& target, bool isDynamic
     return false;
   }
 
-  const Key& key = sourceNode->mTreeNode->key.val;
+  const Key& key = source.getFilename();
   auto targetDirectory = (Directory*)targetNode;
 
   if (targetDirectory->findNode(key)) {
@@ -217,8 +219,6 @@ bool FileSystem::makeLink(const Path& source, const Path& target, bool isDynamic
   auto newLink = new Link(sourceNode, !isDynamic);
 
   assert(targetDirectory->attachNode(key, newLink));
-
-  Directory::updateTreeLinkCount(sourceNode);
 
   return true;
 }
@@ -267,13 +267,13 @@ bool FileSystem::changeCurrent(const Path& path) {
 void FileSystem::log() const {
   std::stringstream ss;
 
-  std::vector<const Key*> currentPath;
-  root->getNodePath(currentDirectory, currentPath);
+  std::vector<const Node*> currentPath;
+  root->getNodeStraightPath(currentDirectory, currentPath);
   std::reverse(currentPath.begin(), currentPath.end());
 
   ss << "cd - /";
   for (auto key : currentPath) {
-    ss << *key << "/";
+    ss << "X" << "/";
   }
 
   ss << "\n";
@@ -286,11 +286,11 @@ const std::string& FileSystem::getLastError() {
 }
 
 bool FileSystem::isPathContainsCurrent(Node* node) {
-  std::vector<const Key*> currentPath;
-  std::vector<const Key*> path;
+  std::vector<const Node*> currentPath;
+  std::vector<const Node*> path;
 
-  root->getNodePath(currentDirectory, currentPath);
-  root->getNodePath(node, path);
+  root->getNodeStraightPath(currentDirectory, currentPath);
+  root->getNodeStraightPath(node, path);
 
   std::reverse(currentPath.begin(), currentPath.end());
   std::reverse(path.begin(), path.end());

@@ -2,11 +2,19 @@
 #include "DirectoryTree.hpp"
 
 #include <sstream>
+#include <cassert>
+#include <algorithm>
 
 std::string gError;
 bool gDebug = true;
 
-Node::~Node() = default;
+Node::~Node() {
+  // assert(mIncomingHardLinks.empty());
+  // for (auto dynamicLink : mIncomingDynamicLinks) {
+  //  dynamicLink->mParent->detachNode(dynamicLink->mTreeNode->key.val);
+  //  delete dynamicLink;
+  //
+}
 
 Node::Node(const Node &node) {
   mType = node.mType;
@@ -65,21 +73,15 @@ Link *Link::clone() const {
 }
 
 Link::~Link() {
-  assert(mLink);
-  auto& links = mIsHard ? mLink->mIncomingHardLinks : mLink->mIncomingDynamicLinks;
-  links.erase(std::remove(links.begin(), links.end(), this), links.end());
-  Directory::updateTreeLinkCount(mLink);
-  mLink = nullptr;
+  // assert(mLink);
+  // auto& links = mIsHard ? mLink->mIncomingHardLinks : mLink->mIncomingDynamicLinks;
+  // links.erase(std::remove(links.begin(), links.end(), this), links.end());
+  // Directory::updateTreeLinkCount(mLink);
+  // mLink = nullptr;
 }
 
 Directory::Directory() {
   mType = DIRECTORY;
-}
-
-Directory::~Directory() {
-  mMembers.traverseInorder(mMembers.getRoot(), [](DirectoryTree::Node* node){
-    delete node->data;
-  });
 }
 
 bool Directory::attachNode(const std::vector<Key>& directoryPath, const Key& newKey, Node* newNode) {
@@ -96,17 +98,16 @@ bool Directory::attachNode(const std::vector<Key>& directoryPath, const Key& new
 }
 
 bool Directory::attachNode(const Key &newKey, Node *newNode) {
-  DirectoryTree::Node* iterNode = mMembers.find(DirectoryKey(newKey));
-  if (iterNode) {
-    if (iterNode->data->mType == newNode->mType) return false; // exit silently
+  auto iterNode = mMembers.find(newKey);
+  if (iterNode != mMembers.end()) {
+    if (iterNode->second->mType == newNode->mType) return false; // exit silently
     gError = "Can not add node";
     return false;
   }
 
-  mMembers.insert(DirectoryKey(newKey), newNode);
+  mMembers.insert({ newKey, newNode });
 
   newNode->mParent = this;
-  updateTreeLinkCount(this);
   return true;
 }
 
@@ -121,27 +122,25 @@ bool Directory::detachNode(const std::vector<Key>& directoryPath, const Key& key
 }
 
 bool Directory::detachNode(const Key& key) {
-  DirectoryTree::Node* removeNode = mMembers.find(DirectoryKey(key));
-  if (!removeNode) {
+  auto removeNode = mMembers.find(key);
+  if (removeNode == mMembers.end()) {
     gError = "Invalid path";
     return false;
   }
 
-  if (removeNode->key.incomingLinksHard || removeNode->key.incomingLinksDynamic) {
-    gError = "Cannot modify node with incoming hard links";
-    return false;
-  }
+  //if (removeNode->key.incomingLinksHard || removeNode->key.incomingLinksDynamic) {
+  //  gError = "Cannot modify node with incoming hard links";
+  //  return false;
+  //}
 
-  removeNode->mParent = nullptr;
-  mMembers.remove(DirectoryKey(key));
-
-  updateTreeLinkCount(this);
+  removeNode->second->mParent = nullptr;
+  mMembers.erase(key);
   return true;
 }
 
 Node* Directory::findNode(const Key& key) {
-  DirectoryTree::Node* iterNode = mMembers.find(DirectoryKey(key));
-  return iterNode ? iterNode->data : nullptr;
+  auto iterNode = mMembers.find(key);
+  return iterNode != mMembers.end() ? iterNode->second : nullptr;
 }
 
 Node* Directory::findNode(const std::vector<Key>& path, ui32 currentDepth) {
@@ -150,13 +149,13 @@ Node* Directory::findNode(const std::vector<Key>& path, ui32 currentDepth) {
   }
 
   const Key& key = path[currentDepth];
-  DirectoryTree::Node* iterNode = mMembers.find(DirectoryKey(key));
+  auto iterNode = mMembers.find(key);
 
-  if (!iterNode) {
+  if (iterNode == mMembers.end()) {
     return nullptr;
   }
 
-  Node* node = iterNode->data;
+  Node* node = iterNode->second;
 
   // link on link is not allowed
   while (true) {
@@ -179,26 +178,14 @@ Node* Directory::findNode(const std::vector<Key>& path, ui32 currentDepth) {
   }
 }
 
-void Directory::updateTreeLinkCount(Node* node) {
-  if (!node || !node->mTreeNode) return;
-
-  node->mTreeNode->key.updateTreeCacheCallBack(*node->mTreeNode);
-
-  if (node->mTreeNode->mParent) {
-    updateTreeLinkCount(node->mTreeNode->mParent->data);
-  } else {
-    updateTreeLinkCount(node->mParent);
-  }
-}
-
 void Directory::getMaxDepthUtil(ui32 depth, ui32& maxDepth) const {
-  if (!mMembers.getRoot()) return;
+  if (mMembers.empty()) return;
   maxDepth = std::max(depth, maxDepth);
-  mMembers.traverseInorder(mMembers.getRoot(), [&](const DirectoryTree::Node* node){
-    if (node->data->mType == DIRECTORY) {
-      ((Directory*)node->data)->getMaxDepthUtil(++depth, maxDepth);
+  for (auto& node : mMembers) {
+    if (node.second->mType == DIRECTORY) {
+      ((Directory*)node.second)->getMaxDepthUtil(++depth, maxDepth);
     }
-  });
+  }
 }
 
 ui32 Directory::getMaxDepth() const {
@@ -223,51 +210,57 @@ static void indent(std::stringstream & ss, ui32 depth, std::vector<bool>& indent
 }
 
 void Directory::dumpUtil(std::stringstream& ss, ui32 currentDepth, std::vector<bool>& indents) {
+  if (mMembers.empty())
+    return;
+
   indents[currentDepth] = true;
   currentDepth++;
 
-  auto lastNode = mMembers.maxNode(mMembers.getRoot());
-  traverseInorder([&](const DirectoryTree::Node* node){
-    if (lastNode == node) indents[currentDepth - 1] = false;
+  const auto& lastNode = mMembers.rbegin()->first;
+
+  for (auto & member : mMembers) {
+    if (lastNode == member.first)
+      indents[currentDepth - 1] = false;
 
     indent(ss, currentDepth, indents);
 
-    switch (node->data->mType) {
+    switch (member.second->mType) {
       case Node::DIRECTORY:
-        ss << node->key.val;
-        if (gDebug)  ss << " [" << node->key.incomingLinksHard << ":" << node->key.incomingLinksDynamic << "]";
+        ss << member.first;
+        if (gDebug)  ss << " [" << member.second->mIncomingHardLinks.size() << ":" << member.second->mIncomingDynamicLinks.size() << "]";
         ss << "\n";
-        ((Directory*) node->data)->dumpUtil(ss, currentDepth, indents);
-        return;
+        ((Directory*) member.second)->dumpUtil(ss, currentDepth, indents);
+        break;
 
       case Node::LINK: {
-        auto linkNode = ((Link*)node->data);
-        ss << node->key.val << (linkNode->isHard() ?  " hlink[/" : " dlink[/");
-        std::vector<const Key*> path;
-        getNodePath(linkNode->getLink(), path);
+        auto linkNode = ((Link*)member.second);
+        ss << member.first << (linkNode->isHard() ?  " hlink[/" : " dlink[/");
+        std::vector<const Node*> path;
+        getNodeStraightPath(linkNode->getLink(), path);
         std::reverse(path.begin(), path.end());
-        for (auto key : path) ss << *key << "/";
+        for (auto key : path)
+          ss << "X" << "/";
         ss << "]\n";
-        return;
+        break;
       }
 
       case Node::FILE:
-        ss << node->key.val;
+        ss << member.first;
         if (gDebug) ss << " [file]";
         ss << "\n";
-        return;
+        break;
 
       default:
         ss << " ERROR \n";
-        return;
+        break;
     }
-  });
+  }
 }
 
-void Directory::getNodePath(Node* node, std::vector<const Key*>& path) const {
-  if (!node || !node->mTreeNode) return;
-  path.push_back(&node->mTreeNode->key.val);
-  getNodePath(node->mParent, path);
+void Directory::getNodeStraightPath(Node* node, std::vector<const Node*>& path) const {
+  if (!node) return;
+  path.push_back(node);
+  getNodeStraightPath(node->mParent, path);
 }
 
 ui64 Directory::size() const {
@@ -275,16 +268,17 @@ ui64 Directory::size() const {
 }
 
 Directory::Directory(const Directory &node) : Node(node) {
-  node.traverseInorder([&](const DirectoryTree::Node* node){
-    auto newNode = node->data->clone();
-    mMembers.insert(node->key, newNode);
+  for (auto & member : node.mMembers) {
+    auto newNode = member.second->clone();
+    mMembers.insert({ member.first, newNode });
     newNode->mParent = this;
-    if (newNode->mType == LINK) {
-      updateTreeLinkCount(((Link*)newNode)->getLink());
-    }
-  });
+  }
+}
 
-  updateTreeLinkCount(this);
+Directory::~Directory() {
+  for (auto node : mMembers) {
+    delete node.second;
+  }
 }
 
 Directory *Directory::clone() const {

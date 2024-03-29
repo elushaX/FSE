@@ -1,42 +1,21 @@
 #pragma once
 
-#include "Tree.hpp"
+typedef unsigned long long ui64;
+typedef unsigned long ui32;
+typedef long long i64;
+typedef long i32;
 
-#include <string>
+#include <map>
 #include <utility>
 #include <vector>
+#include <string>
+
+class Link;
 
 extern std::string gError;
 typedef std::string Key;
 
-struct DirectoryKey {
-  DirectoryKey() = default;
-  explicit DirectoryKey(Key val) : val(std::move(val)) {}
-
-  [[nodiscard]] inline bool descentRight(const DirectoryKey& in) const { return in.val > val; }
-  [[nodiscard]] inline bool descentLeft(const DirectoryKey& in) const { return in.val < val; }
-  [[nodiscard]] inline bool exactNode(const DirectoryKey& in) const { return in.val == val; }
-
-  [[nodiscard]] inline const DirectoryKey& getFindKey() const { return *this; }
-  static inline const DirectoryKey& keyInRightSubtree(const DirectoryKey& in) { return in; }
-  static inline const DirectoryKey& keyInLeftSubtree(const DirectoryKey& in) { return in; }
-
-  template <typename NodeType>
-  inline void updateTreeCacheCallBack(NodeType& treeNode);
-
-public:
-  Key val;
-
-  ui32 incomingLinksHard = 0;
-  ui32 incomingLinksDynamic = 0;
-};
-
-typedef AvlTree<DirectoryKey, class Node*> DirectoryTree;
-
 class Node {
-public:
-  enum Type : ui32 { NONE, DIRECTORY, FILE, LINK } ;
-
 public:
   Node() = default;
   Node(const Node& node);
@@ -45,13 +24,16 @@ public:
   [[nodiscard]] virtual Node* clone() const;
 
 public:
-  Type mType = NONE;
-  Node* mParent = nullptr;
-  DirectoryTree::Node* mTreeNode = nullptr;
+  enum Type : ui32 { NONE, DIRECTORY, FILE, LINK } ;
+  Type mType = NONE; // TODO : remove
 
-  std::vector<class Link*> mIncomingHardLinks;
-  std::vector<class Link*> mIncomingDynamicLinks;
+  class Directory* mParent = nullptr;
+
+  std::vector<Link*> mIncomingHardLinks;
+  std::vector<Link*> mIncomingDynamicLinks;
 };
+
+typedef std::map<Key, Node*> DirectoryTree;
 
 class File : public Node {
 public:
@@ -99,15 +81,8 @@ public:
 
   [[nodiscard]] ui32 getMaxDepth() const;
 
-  template<typename tFunctor>
-  void traverseInorder(tFunctor functor) const {
-    mMembers.traverseInorder(mMembers.getRoot(), functor);
-  }
-
-  void getNodePath(Node* node, std::vector<const Key*>& path) const;
+  void getNodeStraightPath(Node* node, std::vector<const Node*>& path) const;
   [[nodiscard]] ui64 size() const;
-
-  static void updateTreeLinkCount(Node* node);
 
 private:
   void getMaxDepthUtil(ui32 depth, ui32& maxDepth) const;
@@ -116,29 +91,3 @@ private:
 public:
   DirectoryTree mMembers;
 };
-
-
-template <typename NodeType>
-inline void DirectoryKey::updateTreeCacheCallBack(NodeType& treeNode) {
-  treeNode.data->mTreeNode = &treeNode;
-
-  incomingLinksHard = 0;
-  if (treeNode.mLeft) incomingLinksHard += treeNode.mLeft->key.incomingLinksHard;
-  if (treeNode.mRight) incomingLinksHard += treeNode.mRight->key.incomingLinksHard;
-
-  incomingLinksDynamic = 0;
-  if (treeNode.mLeft) incomingLinksDynamic += treeNode.mLeft->key.incomingLinksDynamic;
-  if (treeNode.mRight) incomingLinksDynamic += treeNode.mRight->key.incomingLinksDynamic;
-
-  incomingLinksHard += treeNode.data->mIncomingHardLinks.size();
-  incomingLinksDynamic += treeNode.data->mIncomingDynamicLinks.size();
-
-  if (treeNode.data->mType == Node::DIRECTORY) {
-    auto directory = (Directory*)treeNode.data;
-    if (directory->mMembers.size()) {
-      const auto& rootKey = directory->mMembers.getRoot()->key;
-      incomingLinksDynamic += rootKey.incomingLinksDynamic;
-      incomingLinksHard += rootKey.incomingLinksHard;
-    }
-  }
-}

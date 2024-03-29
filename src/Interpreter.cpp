@@ -108,6 +108,8 @@ void Interpreter::interpret(const std::string& command) {
   std::vector<std::string> words;
   getWords(command, words);
 
+  std::cout << command << "\n";
+
   if (words.empty()) {
     reportError("Empty command");
     return;
@@ -131,10 +133,10 @@ void Interpreter::interpret(const std::string& command) {
 
   bool success = iter->second.callback(mFileSystem, words);
 
+  mFileSystem.log();
+
   if (!success) {
     reportError(FileSystem::getLastError());
     return;
   }
-
-  mFileSystem.log();
 }

@@ -5,10 +5,21 @@
 
 #include <sstream>
 
+// FIX MEMORY VIOLATIONS WITH LINKS
+
+
+// DONT STORE CACHE
+// DO O(N) deletion and moving
+// in-tree node links will report false to those operations and hard nodes deletion
+// use in node 'is_delete' flag and travers all nodes with link checks
+// remove mParent mTreeNode links
+
+// Key (is copied on each tree access) !!!
+
 // Functionality:
-// - print links and link counts
-// - update link counts
-// - add link creation commands
+// deleting directory - mark all nodes as deleted
+// traverse and check for links
+// unlink if those links are outgoing
 
 // Refactor
 // - remove code duplication
@@ -16,6 +27,7 @@
 // - Merge DirectoryTree::Node and Node (no pointer overhead, requires tree nodes to be consistent, check insertNodeInstead)
 // - introduce smart pointers
 // - reconsider switch statements
+
 
 class FileSystem {
 public:
