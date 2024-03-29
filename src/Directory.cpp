@@ -8,24 +8,12 @@
 Directory::Directory() {
 }
 
-bool Directory::attachNode(const std::vector<Key>& directoryPath, const Key& newKey, Node* newNode) {
-  Node* node = findNode(directoryPath);
-
-  if (!node) {
-    gError = "Invalid path";
-    return false;
-  }
-
-  while (node->getTarget() != node) node = node->getTarget();
-  return node->attachNode(newKey, newNode);
-}
-
-bool Directory::attachNode(const Key &newKey, Node *newNode) {
+bool Directory::attachNode(const Key &newKey, std::shared_ptr<Node> newNode) {
   auto iterNode = mMembers.find(newKey);
 
   if (iterNode != mMembers.end()) {
-    Node* existingNode = iterNode->second;
-    if (!(typeid(*existingNode) == typeid(*newNode) && newNode->empty() && existingNode->empty())) {
+    auto existingNode = iterNode->second;
+    if (!(false && newNode->empty() && existingNode->empty())) {
       gError = "Such node already exists";
       return false;
     }
@@ -33,13 +21,7 @@ bool Directory::attachNode(const Key &newKey, Node *newNode) {
   }
 
   mMembers.insert({ newKey, newNode });
-  newNode->mParent = this;
   return true;
-}
-
-bool Directory::detachNode(const std::vector<Key>& directoryPath, const Key& key) {
-  Node* node = findNode(directoryPath);
-  return node->detachNode(key);
 }
 
 bool Directory::detachNode(const Key& key) {
@@ -54,26 +36,25 @@ bool Directory::detachNode(const Key& key) {
   //  return false;
   //}
 
-  removeNode->second->mParent = nullptr;
   mMembers.erase(key);
   return true;
 }
 
-Node* Directory::findNode(const Key& key) {
+std::shared_ptr<Node> Directory::findNode(const Key& key) {
   auto iterNode = mMembers.find(key);
   return iterNode != mMembers.end() ? iterNode->second : nullptr;
 }
 
-Node* Directory::findNode(const std::vector<Key>& path, ui32 currentDepth) {
-  if (path.size() == currentDepth) {
-    return this;
-  }
-
+std::shared_ptr<Node> Directory::findNode(const std::vector<Key>& path, ui32 currentDepth) {
   const Key& key = path[currentDepth];
   auto nextNode = mMembers.find(key);
 
   if (nextNode == mMembers.end()) {
     return nullptr;
+  }
+
+  if (path.size() == currentDepth + 1) {
+    return nextNode->second;
   }
 
   return nextNode->second->findNode(path, currentDepth + 1);
@@ -115,16 +96,19 @@ Directory::Directory(const Directory &node) : Node(node) {
   for (auto & member : node.mMembers) {
     auto newNode = member.second->clone();
     mMembers.insert({ member.first, newNode });
-    newNode->mParent = this;
   }
 }
 
 Directory::~Directory() {
   for (const auto& node : mMembers) {
-    delete node.second;
+    // delete node.second;
   }
 }
 
-Directory *Directory::clone() const {
-  return new Directory(*this);
+std::shared_ptr<Node> Directory::clone() const {
+  auto out = std::make_shared<Directory>(*this);
+  for (auto& member : out->mMembers) {
+    member.second->mParent = out;
+  }
+  return out;
 }

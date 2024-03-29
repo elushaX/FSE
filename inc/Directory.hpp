@@ -3,7 +3,7 @@
 #include "Node.hpp"
 
 class Directory : public Node {
-  typedef std::map<Key, Node*> DirectoryTree;
+  typedef std::map<Key, std::shared_ptr<Node>> DirectoryTree;
 
 public:
   Directory();
@@ -11,16 +11,13 @@ public:
 
   ~Directory() override;
 
-  [[nodiscard]] Directory* clone() const override;
-
-  bool attachNode(const std::vector<Key>& directoryPath, const Key& newKey, Node* newNode) override;
-  bool detachNode(const std::vector<Key>& directoryPath, const Key& key) override;
+  [[nodiscard]] std::shared_ptr<Node> clone() const override;
 
   bool detachNode(const Key& key) override;
-  bool attachNode(const Key &newKey, Node *newNode) override;
+  bool attachNode(const Key &newKey, std::shared_ptr<Node> newNode) override;
 
-  Node* findNode(const std::vector<Key>& path, ui32 currentDepth = 0) override;
-  Node* findNode(const Key& path) override;
+  std::shared_ptr<Node> findNode(const std::vector<Key>& path, ui32 currentDepth = 0) override;
+  std::shared_ptr<Node> findNode(const Key& path) override;
 
   [[nodiscard]] ui64 size() const override;
 

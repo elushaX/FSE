@@ -5,31 +5,31 @@
 #include <cassert>
 #include <algorithm>
 
-Link::Link(Node* target, bool isHard) {
+Link::Link(const std::shared_ptr<Node>& target, bool isHard) {
   mIsHard = isHard;
   mLink = target;
 
-  if (mIsHard) {
-    target->mIncomingHardLinks.push_back(this);
-  } else {
-    target->mIncomingDynamicLinks.push_back(this);
-  }
+  // if (mIsHard) {
+  //  target->mIncomingHardLinks.push_back(std::shared_ptr<Link>(this));
+  // } else {
+  //  target->mIncomingDynamicLinks.push_back(std::shared_ptr<Link>(this));
+  //}
 }
 
 Link::Link(const Link &node) : Node(node) {
   mLink = node.mLink;
   mIsHard = node.mIsHard;
 
-  assert(mLink);
-  if (mIsHard) {
-    mLink->mIncomingHardLinks.push_back(this);
-  } else {
-    mLink->mIncomingDynamicLinks.push_back(this);
-  }
+  // assert(mLink);
+  // if (mIsHard) {
+  //  mLink->mIncomingHardLinks.push_back(std::shared_ptr<Link>(this));
+  // } else {
+  //  mLink->mIncomingDynamicLinks.push_back(std::shared_ptr<Link>(this));
+  // }
 }
 
-Link *Link::clone() const {
-  return new Link(*this);
+std::shared_ptr<Node> Link::clone() const {
+  return std::make_shared<Link>(*this);
 }
 
 Link::~Link() {
@@ -40,7 +40,7 @@ Link::~Link() {
   // mLink = nullptr;
 }
 
-Node *Link::getLink() const {
+std::shared_ptr<Node> Link::getLink() const {
   return mLink;
 }
 
@@ -48,13 +48,13 @@ bool Link::isHard() const {
   return mIsHard;
 }
 
-Node* Link::getTarget() {
-return getLink();
+std::shared_ptr<Node> Link::getTarget() {
+  return getLink();
 }
 
-Node* Link::findNode(const std::vector<Key>& path, ui32 currentDepth) {
+std::shared_ptr<Node> Link::findNode(const std::vector<Key>& path, ui32 currentDepth) {
   if (path.size() == currentDepth) {
-    return this;
+    return std::shared_ptr<Node>(this);
   }
   assert(mLink);
   return mLink->findNode(path, currentDepth + 1);
@@ -64,7 +64,7 @@ Node* Link::findNode(const std::vector<Key>& path, ui32 currentDepth) {
 void Link::dumpUtil(std::stringstream& ss, const Key& key, ui32 currentDepth, std::vector<bool>& indents) {
   indent(ss, currentDepth, indents);
   ss << key << (isHard() ?  " hlink[/" : " dlink[/");
-  std::vector<const Node*> path;
+  std::vector<std::shared_ptr<Node>> path;
   getNodeStraightPath(getLink(), path);
   std::reverse(path.begin(), path.end());
   for (auto tmp : path)

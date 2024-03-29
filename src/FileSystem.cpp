@@ -9,13 +9,47 @@
 #include <algorithm>
 
 FileSystem::FileSystem() {
-  root = new Directory();
+  root = std::make_shared<Directory>();
   currentDirectory = root;
   initializeTransitions();
 }
 
-FileSystem::~FileSystem() {
-  delete root;
+FileSystem::~FileSystem() = default;
+
+std::shared_ptr<Node> FileSystem::getNode(const Path& path, bool parent) {
+  auto pathChain = parent ? path.getParentChain() : path.getChain();
+  auto currentNode = path.isAbsolute() ? root : currentDirectory;
+  auto parentNode = pathChain.empty() ? currentNode : currentNode->findNode(pathChain);
+
+  if (parent) {
+    while (parentNode->getTarget()) {
+      parentNode = parentNode->getTarget();
+    }
+  }
+
+  return parentNode;
+}
+
+bool FileSystem::changeCurrent(const Path& path) {
+  if (path.isInvalid()) {
+    gError = "Invalid path";
+    return false;
+  }
+
+  auto parentNode = getNode(path, false);
+
+  if (!parentNode) {
+    gError = "No such directory";
+    return false;
+  }
+
+  if (!parentNode->isDirectory()) {
+    gError = "Path is not a directory";
+    return false;
+  }
+
+  currentDirectory = parentNode;
+  return true;
 }
 
 bool FileSystem::makeDirectory(const Path& path) {
@@ -24,15 +58,21 @@ bool FileSystem::makeDirectory(const Path& path) {
     return false;
   }
 
-  Node* parentNode = path.isAbsolute() ? root : currentDirectory;
+  auto parentNode = getNode(path, true);
 
-  auto newDirectory = new Directory();
-  if (!parentNode->attachNode(path.getParentChain(), path.getFilename(), newDirectory)) {
-    delete newDirectory;
-    gError = "Invalid path or node exists";
+  if (!parentNode) {
+    gError = "Invalid path";
     return false;
   }
 
+  auto directory = std::make_shared<Directory>();
+
+  if (!parentNode->attachNode(path.getFilename(), directory)) {
+    gError = "File or link with such name already exists";
+    return false;
+  }
+
+  directory->mParent = parentNode;
   return true;
 }
 
@@ -42,15 +82,20 @@ bool FileSystem::makeFile(const Path& path) {
     return false;
   }
 
-  Node* parentNode = path.isAbsolute() ? root : currentDirectory;
+  auto parentNode = getNode(path, true);
 
-  auto newFile = new Node();
-  if (!parentNode->attachNode(path.getParentChain(), path.getFilename(), newFile)) {
-    delete newFile;
+  if (!parentNode) {
     gError = "Invalid path";
     return false;
   }
 
+  auto newFile = std::make_shared<Node>();
+  if (!parentNode->attachNode(path.getFilename(), newFile)) {
+    gError = "Directory with such name already exists";
+    return false;
+  }
+
+  newFile->mParent = parentNode;
   return true;
 }
 
@@ -60,11 +105,16 @@ bool FileSystem::removeDirectory(const Path& path, bool recursively) {
     return false;
   }
 
-  Node* parentNode = path.isAbsolute() ? root : currentDirectory;
+  auto parentNode = getNode(path, true);
 
-  auto existingNode = parentNode->findNode(path.getChain());
+  if (!parentNode) {
+    gError = "Invalid path";
+    return false;
+  }
+
+  auto existingNode = parentNode->findNode(path.getFilename());
   if (!existingNode) {
-    gError = "Cant remove, such node doesnt exists";
+    gError = "Directory with such name does not exist";
     return false;
   }
 
@@ -83,129 +133,8 @@ bool FileSystem::removeDirectory(const Path& path, bool recursively) {
     return false;
   }
 
-  if (!parentNode->detachNode(path.getParentChain(), path.getFilename())) {
-    gError = "Can not detach node";
-    return false;
-  }
-
-  delete existingNode;
-  return true;
-}
-
-bool FileSystem::copyNode(const Path& source, const Path& target) {
-  if (source.getDepth() < 1 || source.isInvalid()) {
-    gError = "Invalid source path";
-    return false;
-  }
-
-  Node* workingDirectorySource = source.isAbsolute() ? root : currentDirectory;
-  Node* workingDirectoryTarget = target.isAbsolute() ? root : currentDirectory;
-
-  auto sourceNode = workingDirectorySource->findNode(source.getChain());
-  if (!sourceNode) {
-    gError = "Invalid source path";
-    return false;
-  }
-
-  auto targetNode = workingDirectoryTarget->findNode(target.getChain());
-  if (!targetNode) {
-    gError = "Invalid target directory";
-    return false;
-  }
-
-  Key key = source.getFilename();
-
-  if (targetNode->findNode(key)) {
-    // gError = "Node with such name already exists in the target directory";
-    // return false;
-    key += "_copy";
-  }
-
-  Node* clonedNode = sourceNode->clone();
-
-  if (!targetNode->attachNode(key, clonedNode)) {
-    delete clonedNode;
-    return false;
-  }
-
-  return true;
-}
-
-bool FileSystem::moveNode(const Path &source, const Path &target) {
-  if (source.getDepth() < 1 || source.isInvalid()) {
-    gError = "Invalid source path";
-    return false;
-  }
-
-  Node* workingDirectorySource = source.isAbsolute() ? root : currentDirectory;
-  Node* workingDirectoryTarget = target.isAbsolute() ? root : currentDirectory;
-
-  auto sourceParentNode = workingDirectorySource->findNode(source.getParentChain());
-  if (!sourceParentNode) {
-    gError = "Invalid source path";
-    return false;
-  }
-
-  auto sourceNode = sourceParentNode->findNode(source.getFilename());
-  if (!sourceNode) {
-    gError = "Invalid source path";
-    return false;
-  }
-
-  auto targetNode = workingDirectoryTarget->findNode(target.getChain());
-  if (!targetNode) {
-    gError = "Invalid target directory";
-    return false;
-  }
-
-  const Key& key = source.getFilename();
-
-  if (sourceParentNode->isHard()) {
-    gError = "Node contains incoming hard links";
-    return false;
-  }
-
-  if (!targetNode->attachNode(key, sourceNode)) {
-    return false;
-  }
-
-  assert(sourceParentNode->detachNode(key));
-
-  return true;
-}
-
-bool FileSystem::makeLink(const Path& source, const Path& target, bool isDynamic) {
-  if (source.getDepth() < 1 || source.isInvalid()) {
-    gError = "Invalid source path";
-    return false;
-  }
-
-  Node* workingDirectorySource = source.isAbsolute() ? root : currentDirectory;
-  Node* workingDirectoryTarget = target.isAbsolute() ? root : currentDirectory;
-
-  auto sourceNode = workingDirectorySource->findNode(source.getChain());
-  if (!sourceNode) {
-    gError = "Invalid source path";
-    return false;
-  }
-
-  if (sourceNode->isLink()) {
-    gError = "Link on link is not allowed";
-    return false;
-  }
-
-  auto targetNode = workingDirectoryTarget->findNode(target.getChain());
-  if (!targetNode || !targetNode->isDirectory()) {
-    gError = "Invalid target directory";
-    return false;
-  }
-
-  const Key& key = source.getFilename();
-  auto targetDirectory = (Directory*)targetNode;
-
-  auto newLink = new Link(sourceNode, !isDynamic);
-  if (!targetDirectory->attachNode(key, newLink)) {
-    delete newLink;
+  if (!parentNode->detachNode(path.getFilename())) {
+    gError = "Can not remove directory because it has hard references";
     return false;
   }
 
@@ -218,48 +147,160 @@ bool FileSystem::removeFileOrLink(const Path &path) {
     return false;
   }
 
-  Node* parentDirectory = path.isAbsolute() ? root : currentDirectory;
+  auto parentNode = getNode(path, true);
 
-  auto existingNode = parentDirectory->findNode(path.getChain());
-  if (!existingNode) {
-    gError = "Cant remove, such node doesnt exists";
-    return false;
-  }
-
-  if (existingNode->isDirectory()) {
-    gError = "Path is a directory";
-    return false;
-  }
-
-  if (!parentDirectory->detachNode(path.getParentChain(), path.getFilename())) {
-    gError = "Can not remove node";
-    return false;
-  }
-
-  delete existingNode;
-  return true;
-}
-
-bool FileSystem::changeCurrent(const Path& path) {
-  if (path.isInvalid()) {
+  if (!parentNode) {
     gError = "Invalid path";
     return false;
   }
 
-  auto node = path.isAbsolute() ? root->findNode(path.getChain(), 0) : currentDirectory->findNode(path.getChain(), 0);
-  if (!node || !node->isDirectory()) {
-    gError = "No such directory";
+  auto existingNode = parentNode->findNode(path.getFilename());
+  if (!existingNode) {
+    gError = "File or link with such name does not exist";
     return false;
   }
 
-  currentDirectory = node;
+  if (existingNode->isDirectory()) {
+    gError = "Path is not a file or a link";
+    return false;
+  }
+
+  if (!parentNode->detachNode(path.getFilename())) {
+    gError = "Can not remove file or link because it has hard references";
+    return false;
+  }
+
+  return true;
+}
+
+bool FileSystem::copyNode(const Path& source, const Path& target) {
+  if (source.getDepth() < 1 || source.isInvalid()) {
+    gError = "Invalid source path";
+    return false;
+  }
+
+  auto parentNodeSource = getNode(source, true);
+  if (!parentNodeSource) {
+    gError = "Invalid source path";
+    return false;
+  }
+
+  auto parentNodeTarget = getNode(target, false);
+  if (!parentNodeTarget) {
+    gError = "Invalid target path";
+    return false;
+  }
+
+  auto sourceNode = parentNodeSource->findNode(source.getFilename());
+  if (!sourceNode) {
+    gError = "Invalid source path";
+    return false;
+  }
+
+  if (!parentNodeTarget->isDirectory()) {
+    gError = "Target path is not a directory";
+    return false;
+  }
+
+  Key key = source.getFilename();
+  while (parentNodeTarget->findNode(key)) {
+    // gError = "Node with such name already exists in the target directory";
+    // return false;
+    key += "_copy";
+  }
+
+  auto clonedNode = sourceNode->clone();
+  assert(parentNodeTarget->attachNode(key, clonedNode));
+  clonedNode->mParent = parentNodeTarget;
+  return true;
+}
+
+bool FileSystem::moveNode(const Path &source, const Path &target) {
+  if (source.getDepth() < 1 || source.isInvalid()) {
+    gError = "Invalid source path";
+    return false;
+  }
+
+  auto parentNodeSource = getNode(source, true);
+  if (!parentNodeSource) {
+    gError = "Invalid source path";
+    return false;
+  }
+
+  auto parentNodeTarget = getNode(target, false);
+  if (!parentNodeTarget) {
+    gError = "Invalid target path";
+    return false;
+  }
+
+  auto sourceNode = parentNodeSource->findNode(source.getFilename());
+  if (!sourceNode) {
+    gError = "Invalid source path";
+    return false;
+  }
+
+  const Key& key = source.getFilename();
+
+  if (sourceNode->isHard()) {
+    gError = "Node contains incoming hard links";
+    return false;
+  }
+
+  if (!parentNodeTarget->attachNode(key, sourceNode)) {
+    gError = "Node with such name already exists";
+    return false;
+  }
+
+  sourceNode->mParent = parentNodeTarget;
+  assert(parentNodeSource->detachNode(key));
+  return true;
+}
+
+bool FileSystem::makeLink(const Path& source, const Path& target, bool isDynamic) {
+  if (source.getDepth() < 1 || source.isInvalid()) {
+    gError = "Invalid source path";
+    return false;
+  }
+
+  auto parentNodeSource = getNode(source, true);
+  if (!parentNodeSource) {
+    gError = "Invalid source path";
+    return false;
+  }
+
+  auto parentNodeTarget = getNode(target, false);
+  if (!parentNodeTarget) {
+    gError = "Invalid target path";
+    return false;
+  }
+
+  auto sourceNode = parentNodeSource->findNode(source.getFilename());
+  if (!sourceNode) {
+    gError = "Invalid source path";
+    return false;
+  }
+
+  if (sourceNode->isLink()) {
+    gError = "Link on link is not allowed";
+    return false;
+  }
+
+  const Key& key = source.getFilename();
+
+  auto newLink = std::shared_ptr<Node>(new Link(sourceNode, !isDynamic));
+  if (!parentNodeTarget->attachNode(key, newLink)) {
+    gError = "Node with such name already exists";
+    return false;
+  }
+
+  newLink->mParent = parentNodeTarget;
   return true;
 }
 
 void FileSystem::log() const {
   std::stringstream ss;
 
-  std::vector<const Node*> currentPath;
+  std::vector<std::shared_ptr<Node>> currentPath;
   root->getNodeStraightPath(currentDirectory, currentPath);
   std::reverse(currentPath.begin(), currentPath.end());
 
@@ -277,9 +318,9 @@ const std::string& FileSystem::getLastError() {
   return gError;
 }
 
-bool FileSystem::isPathContainsCurrent(Node* node) {
-  std::vector<const Node*> currentPath;
-  std::vector<const Node*> path;
+bool FileSystem::isPathContainsCurrent(const std::shared_ptr<Node>& node) {
+  std::vector<std::shared_ptr<Node>> currentPath;
+  std::vector<std::shared_ptr<Node>> path;
 
   root->getNodeStraightPath(currentDirectory, currentPath);
   root->getNodeStraightPath(node, path);

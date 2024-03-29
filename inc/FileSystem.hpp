@@ -47,9 +47,10 @@ public:
   static const std::string& getLastError();
 
 private:
-  bool isPathContainsCurrent(Node* node);
+  bool isPathContainsCurrent(const std::shared_ptr<Node>& node);
+  std::shared_ptr<Node> getNode(const Path& path, bool parent);
 
 private:
-  Node* root = nullptr;
-  Node* currentDirectory = nullptr;
+  std::shared_ptr<Node> root = nullptr;
+  std::shared_ptr<Node> currentDirectory = nullptr;
 };

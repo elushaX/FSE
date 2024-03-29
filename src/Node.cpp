@@ -1,6 +1,7 @@
 
 #include "Node.hpp"
 
+#include <memory>
 #include <sstream>
 #include <cassert>
 #include <algorithm>
@@ -18,8 +19,8 @@ Node::~Node() {
   //
 }
 
-Node *Node::clone() const {
-  return new Node(*this);
+std::shared_ptr<Node> Node::clone() const {
+  return std::make_shared<Node>(*this);
 }
 
 ui32 Node::getMaxDepth() const {
@@ -28,17 +29,19 @@ ui32 Node::getMaxDepth() const {
   return maxDepth;
 }
 
-Node* Node::findNode(const std::vector<Key>& path, ui32 currentDepth) {
-  if (path.size() - 1 == currentDepth) {
-    return this;
-  }
+std::shared_ptr<Node> Node::findNode(const std::vector<Key>& path, ui32 currentDepth) {
+  assert(false);
   return nullptr;
 }
 
-void Node::getNodeStraightPath(Node* node, std::vector<const Node*>& path) const {
+std::shared_ptr<Node> Node::getTarget() {
+  return nullptr;
+}
+
+void Node::getNodeStraightPath(const std::shared_ptr<Node>& node, std::vector<std::shared_ptr<Node>>& path) const {
   if (!node) return;
   path.push_back(node);
-  getNodeStraightPath(node->mParent, path);
+  getNodeStraightPath(node->mParent.lock(), path);
 }
 
 void Node::dump(std::stringstream& ss) {

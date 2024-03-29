@@ -10,6 +10,7 @@ typedef long i32;
 #include <vector>
 #include <string>
 #include <cassert>
+#include <memory>
 
 class Link;
 
@@ -22,13 +23,10 @@ public:
   Node(const Node& node);
   virtual ~Node();
 
-  [[nodiscard]] virtual Node* clone() const;
-
-  virtual bool attachNode(const std::vector<Key>& directoryPath, const Key& newKey, Node* newNode) { return false; }
-  virtual bool detachNode(const std::vector<Key>& directoryPath, const Key& key) { return false; }
+  [[nodiscard]] virtual std::shared_ptr<Node> clone() const;
 
   virtual bool detachNode(const Key& key) { return false; }
-  virtual bool attachNode(const Key &newKey, Node *newNode) { return false; }
+  virtual bool attachNode(const Key &newKey, std::shared_ptr<Node> newNode) { return false; }
 
   virtual void getMaxDepthUtil(ui32 depth, ui32& maxDepth) const {}
 
@@ -38,15 +36,15 @@ public:
 
   void dump(std::stringstream& ss);
 
-  void getNodeStraightPath(Node* node, std::vector<const Node*>& path) const;
+  void getNodeStraightPath(const std::shared_ptr<Node>& node, std::vector<std::shared_ptr<Node>>& path) const;
 
   virtual ui64 size() const { return 0; }
 
-  virtual Node* getTarget() { return this; }
+  virtual std::shared_ptr<Node> getTarget();
 
-  virtual Node* findNode(const std::vector<Key>& path, ui32 currentDepth = 0);
+  virtual std::shared_ptr<Node> findNode(const std::vector<Key>& path, ui32 currentDepth = 0);
 
-  virtual Node* findNode(const Key& path) { return nullptr; }
+  virtual std::shared_ptr<Node> findNode(const Key& path) { return nullptr; }
 
   bool empty() const { return !size(); }
 
@@ -57,8 +55,8 @@ public:
   virtual bool isHard() const { return false; }
 
 public:
-  Node* mParent = nullptr;
+  std::weak_ptr<Node> mParent;
 
-  std::vector<Link*> mIncomingHardLinks;
-  std::vector<Link*> mIncomingDynamicLinks;
+  std::vector<std::weak_ptr<Link>> mIncomingHardLinks;
+  std::vector<std::weak_ptr<Link>> mIncomingDynamicLinks;
 };
