@@ -6,9 +6,6 @@
 #include <cassert>
 #include <algorithm>
 
-std::string gError;
-bool gDebug = true;
-
 Node::Node(const Node &node) {}
 
 Node::~Node() {
@@ -54,7 +51,7 @@ void Node::dump(std::stringstream& ss) {
 void Node::dumpUtil(std::stringstream& ss, const Key& key, ui32 currentDepth, std::vector<bool>& indents) {
   indent(ss, currentDepth, indents);
   ss << key;
-  if (gDebug) ss << " [file]";
+  ss << " [file]";
   ss << "\n";
 }
 

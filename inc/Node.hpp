@@ -14,42 +14,32 @@ typedef long i32;
 
 class Link;
 
-extern std::string gError;
 typedef std::string Key;
 
 class Node {
+public:
+  enum NodeType { FILE, LINK, DIRECTORY };
+
 public:
   Node() = default;
   Node(const Node& node);
   virtual ~Node();
 
+  virtual NodeType getType() const { return FILE; }
   [[nodiscard]] virtual std::shared_ptr<Node> clone() const;
-
   virtual bool detachNode(const Key& key) { return false; }
   virtual bool attachNode(const Key &newKey, std::shared_ptr<Node> newNode) { return false; }
-
   virtual void getMaxDepthUtil(ui32 depth, ui32& maxDepth) const {}
-
   virtual void dumpUtil(std::stringstream& ss, const Key& key, ui32 currentDepth, std::vector<bool>& indents);
-
   ui32 getMaxDepth() const;
-
   void dump(std::stringstream& ss);
-
   void getNodeStraightPath(const std::shared_ptr<Node>& node, std::vector<std::shared_ptr<Node>>& path) const;
-
   virtual ui64 size() const { return 0; }
-
   virtual std::shared_ptr<Node> getTarget();
-
   virtual std::shared_ptr<Node> findNode(const std::vector<Key>& path, ui32 currentDepth = 0);
-
   virtual std::shared_ptr<Node> findNode(const Key& path) { return nullptr; }
-
   bool empty() const { return !size(); }
-
   static void indent(std::stringstream & ss, ui32 depth, std::vector<bool>& indents);
-
   virtual bool isDirectory() const { return false; }
   virtual bool isLink() const { return false; }
   virtual bool isHard() const { return false; }

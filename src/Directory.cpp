@@ -2,34 +2,20 @@
 #include "Directory.hpp"
 
 #include <sstream>
-#include <cassert>
 #include <algorithm>
 
-Directory::Directory() {
-}
+Directory::Directory() = default;
+
+Directory::~Directory() = default;
 
 bool Directory::attachNode(const Key &newKey, std::shared_ptr<Node> newNode) {
-  auto iterNode = mMembers.find(newKey);
-
-  if (iterNode != mMembers.end()) {
-    auto existingNode = iterNode->second;
-    if (!(false && newNode->empty() && existingNode->empty())) {
-      gError = "Such node already exists";
-      return false;
-    }
-    return false; // exit silently
-  }
-
+  assert(mMembers.find(newKey) == mMembers.end());
   mMembers.insert({ newKey, newNode });
   return true;
 }
 
 bool Directory::detachNode(const Key& key) {
-  auto removeNode = mMembers.find(key);
-  if (removeNode == mMembers.end()) {
-    gError = "Invalid path";
-    return false;
-  }
+  assert(mMembers.find(key) != mMembers.end());
 
   //if (removeNode->key.incomingLinksHard || removeNode->key.incomingLinksDynamic) {
   //  gError = "Cannot modify node with incoming hard links";
@@ -99,11 +85,6 @@ Directory::Directory(const Directory &node) : Node(node) {
   }
 }
 
-Directory::~Directory() {
-  for (const auto& node : mMembers) {
-    // delete node.second;
-  }
-}
 
 std::shared_ptr<Node> Directory::clone() const {
   auto out = std::make_shared<Directory>(*this);

@@ -7,25 +7,12 @@
 
 // restore path unwindingk
 // RESTORE LINKS
-// COPY operator update link targets
-// Improve error logs
-// use smart pointers
+// COPY operator update link targets on copied nodes
 
-// in-tree node links will report false to those operations and hard nodes deletion
 // use in node 'is_delete' flag and travers all nodes with link checks
-// remove mParent mTreeNode links
-
-// Functionality:
 // deleting directory - mark all nodes as deleted
 // traverse and check for links
 // unlink if those links are outgoing
-
-// Refactor
-// - remove code duplication
-// - Move DirectoryKey inside Node (no need to store pointers from Node to DirectoryTree::Node)
-// - Merge DirectoryTree::Node and Node (no pointer overhead, requires tree nodes to be consistent, check insertNodeInstead)
-// - introduce smart pointers
-// - reconsider switch statements
 
 
 class FileSystem {

@@ -8,6 +8,8 @@
 #include <cassert>
 #include <algorithm>
 
+static std::string gError;
+
 FileSystem::FileSystem() {
   root = std::make_shared<Directory>();
   currentDirectory = root;
@@ -65,14 +67,19 @@ bool FileSystem::makeDirectory(const Path& path) {
     return false;
   }
 
-  auto directory = std::make_shared<Directory>();
-
-  if (!parentNode->attachNode(path.getFilename(), directory)) {
-    gError = "File or link with such name already exists";
-    return false;
+  auto existingNode = parentNode->findNode(path.getFilename());
+  if (existingNode) {
+    if (!(existingNode->getType() == Node::DIRECTORY && existingNode->empty())) {
+      gError = "File or link with such name already exists";
+      return false;
+    }
+    return true;
   }
 
+  auto directory = std::make_shared<Directory>();
   directory->mParent = parentNode;
+
+  assert(parentNode->attachNode(path.getFilename(), directory));
   return true;
 }
 
@@ -89,13 +96,63 @@ bool FileSystem::makeFile(const Path& path) {
     return false;
   }
 
+  auto existingNode = parentNode->findNode(path.getFilename());
+  if (existingNode) {
+    if (!(existingNode->getType() == Node::FILE && existingNode->empty())) {
+      gError = "Directory with such name already exists";
+      return false;
+    }
+    return true;
+  }
+
   auto newFile = std::make_shared<Node>();
-  if (!parentNode->attachNode(path.getFilename(), newFile)) {
-    gError = "Directory with such name already exists";
+  newFile->mParent = parentNode;
+
+  assert(parentNode->attachNode(path.getFilename(), newFile));
+  return true;
+}
+
+bool FileSystem::makeLink(const Path& source, const Path& target, bool isDynamic) {
+  if (source.getDepth() < 1 || source.isInvalid()) {
+    gError = "Invalid source path";
     return false;
   }
 
-  newFile->mParent = parentNode;
+  auto parentNodeSource = getNode(source, true);
+  if (!parentNodeSource) {
+    gError = "Invalid source path";
+    return false;
+  }
+
+  auto parentNodeTarget = getNode(target, false);
+  if (!parentNodeTarget) {
+    gError = "Invalid target path";
+    return false;
+  }
+
+  auto sourceNode = parentNodeSource->findNode(source.getFilename());
+  if (!sourceNode) {
+    gError = "Invalid source path";
+    return false;
+  }
+
+  if (sourceNode->isLink()) {
+    gError = "Link on link is not allowed";
+    return false;
+  }
+
+  const Key& key = source.getFilename();
+
+  if (parentNodeTarget->findNode(key)) {
+    gError = "Node with such name already exists";
+    return false;
+  }
+
+  auto newLink = std::shared_ptr<Node>(new Link(sourceNode, !isDynamic));
+  newLink->mParent = parentNodeTarget;
+
+  assert(parentNodeTarget->attachNode(key, newLink));
+
   return true;
 }
 
@@ -210,8 +267,9 @@ bool FileSystem::copyNode(const Path& source, const Path& target) {
   }
 
   auto clonedNode = sourceNode->clone();
-  assert(parentNodeTarget->attachNode(key, clonedNode));
   clonedNode->mParent = parentNodeTarget;
+  assert(parentNodeTarget->attachNode(key, clonedNode));
+
   return true;
 }
 
@@ -241,59 +299,20 @@ bool FileSystem::moveNode(const Path &source, const Path &target) {
 
   const Key& key = source.getFilename();
 
+  if (parentNodeTarget->findNode(key)) {
+    gError = "Node with such name already exists in the target directory";
+    return false;
+  }
+
   if (sourceNode->isHard()) {
     gError = "Node contains incoming hard links";
     return false;
   }
 
-  if (!parentNodeTarget->attachNode(key, sourceNode)) {
-    gError = "Node with such name already exists";
-    return false;
-  }
+  assert(parentNodeTarget->attachNode(key, sourceNode));
+  assert(parentNodeSource->detachNode(key));
 
   sourceNode->mParent = parentNodeTarget;
-  assert(parentNodeSource->detachNode(key));
-  return true;
-}
-
-bool FileSystem::makeLink(const Path& source, const Path& target, bool isDynamic) {
-  if (source.getDepth() < 1 || source.isInvalid()) {
-    gError = "Invalid source path";
-    return false;
-  }
-
-  auto parentNodeSource = getNode(source, true);
-  if (!parentNodeSource) {
-    gError = "Invalid source path";
-    return false;
-  }
-
-  auto parentNodeTarget = getNode(target, false);
-  if (!parentNodeTarget) {
-    gError = "Invalid target path";
-    return false;
-  }
-
-  auto sourceNode = parentNodeSource->findNode(source.getFilename());
-  if (!sourceNode) {
-    gError = "Invalid source path";
-    return false;
-  }
-
-  if (sourceNode->isLink()) {
-    gError = "Link on link is not allowed";
-    return false;
-  }
-
-  const Key& key = source.getFilename();
-
-  auto newLink = std::shared_ptr<Node>(new Link(sourceNode, !isDynamic));
-  if (!parentNodeTarget->attachNode(key, newLink)) {
-    gError = "Node with such name already exists";
-    return false;
-  }
-
-  newLink->mParent = parentNodeTarget;
   return true;
 }
 

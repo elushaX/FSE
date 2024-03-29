@@ -92,7 +92,7 @@ Interpreter::Interpreter() {
 }
 
 void Interpreter::reportError(const std::string& description) {
-  std::cout << "ERROR : " << description << "\n\n";
+  std::cout << "ERROR: " << description << "\n\n";
 }
 
 void Interpreter::printHelp() {
