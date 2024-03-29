@@ -21,6 +21,6 @@ public:
   bool isLink() const override { return true; }
 
 private:
-  std::shared_ptr<Node> mLink = nullptr;
+  std::weak_ptr<Node> mLink;
   bool mIsHard = false;
 };

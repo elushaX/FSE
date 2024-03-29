@@ -41,7 +41,9 @@ Link::~Link() {
 }
 
 std::shared_ptr<Node> Link::getLink() const {
-  return mLink;
+  auto target = mLink.lock();
+  assert(target);
+  return target;
 }
 
 bool Link::isHard() const {
@@ -53,13 +55,9 @@ std::shared_ptr<Node> Link::getTarget() {
 }
 
 std::shared_ptr<Node> Link::findNode(const std::vector<Key>& path, ui32 currentDepth) {
-  if (path.size() == currentDepth) {
-    return std::shared_ptr<Node>(this);
-  }
-  assert(mLink);
-  return mLink->findNode(path, currentDepth + 1);
+  assert(path.size() != currentDepth);
+  return getLink()->findNode(path, currentDepth + 1);
 }
-
 
 void Link::dumpUtil(std::stringstream& ss, const Key& key, ui32 currentDepth, std::vector<bool>& indents) {
   indent(ss, currentDepth, indents);
