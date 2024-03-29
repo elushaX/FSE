@@ -18,11 +18,8 @@ public:
   // link on link is not allowed, so no inf looping here
   std::shared_ptr<Node> findNode(const std::vector<Key>& path, ui32 currentDepth) override;
   void dumpUtil(std::stringstream& ss, const Key& key, ui32 currentDepth, std::vector<bool>& indents) override;
-  bool isLink() const override { return true; }
 
   static bool linkNodes(const std::shared_ptr<Link>& link, const std::shared_ptr<Node>& target, bool hard);
-  static bool unlinkWithIncomingLinks(std::shared_ptr<Node>& target);
-  static bool removeOutgoingLinks(const std::shared_ptr<Link>& link);
 
 private:
   std::weak_ptr<Node> mLink;

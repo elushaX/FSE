@@ -32,26 +32,6 @@ bool Link::linkNodes(const std::shared_ptr<Link>& link, const std::shared_ptr<No
   return true;
 }
 
-bool Link::unlinkWithIncomingLinks(std::shared_ptr<Node>& target) {
-  assert(target->mIncomingHardLinks.empty());
-  auto& links = target->mIncomingDynamicLinks;
-
-  auto shouldRemove = [](const std::weak_ptr<Link>& link) {
-    // Modify the condition as needed
-    return link.expired();  // Remove expired weak pointers
-  };
-
-  links.erase(std::remove_if(links.begin(), links.end(), shouldRemove), links.end());
-}
-
-bool Link::removeOutgoingLinks(const std::shared_ptr<Link>& link) {
-// assert(mLink);
-// auto& links = mIsHard ? mLink->mIncomingHardLinks : mLink->mIncomingDynamicLinks;
-// links.erase(std::remove(links.begin(), links.end(), this), links.end());
-// Directory::updateTreeLinkCount(mLink);
-// mLink = nullptr;
-}
-
 std::shared_ptr<Node> Link::getLink() const {
   auto target = mLink.lock();
   assert(target);
@@ -73,12 +53,12 @@ std::shared_ptr<Node> Link::findNode(const std::vector<Key>& path, ui32 currentD
 
 void Link::dumpUtil(std::stringstream& ss, const Key& key, ui32 currentDepth, std::vector<bool>& indents) {
   indent(ss, currentDepth, indents);
-  ss << key << (isHard() ?  " hlink[/" : " dlink[/");
+  ss << key << (isHard() ?  " hlink[" : " dlink[");
   std::vector<std::shared_ptr<Node>> path;
   getNodeStraightPath(getLink(), path);
   std::reverse(path.begin(), path.end());
-  for (auto tmp : path)
-    ss << "X" << "/";
+  for (auto& node : path)
+    ss << node->mKey << "/";
   ss << "]\n";
 }
 

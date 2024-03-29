@@ -31,6 +31,7 @@ int main() {
   interpreter.interpret("md a/b/c");
   interpreter.interpret("mhl a /a/b/c/");
   interpreter.interpret("md a/b/c/a/k");
+
   interpreter.interpret("copy a /");
 
   interpreter.interpret("mdl a/b/c /a_copy/k");

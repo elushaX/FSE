@@ -13,6 +13,7 @@ typedef long i32;
 #include <memory>
 
 class Link;
+class Directory;
 
 typedef std::string Key;
 
@@ -35,9 +36,10 @@ public:
   virtual std::shared_ptr<Node> getTarget();
   virtual std::shared_ptr<Node> findNode(const std::vector<Key>& path, ui32 currentDepth = 0);
   virtual std::shared_ptr<Node> findNode(const Key& path) { return nullptr; }
-  virtual bool isDirectory() const { return false; }
-  virtual bool isLink() const { return false; }
-  virtual bool isHard() const { return false; }
+
+  virtual void clearFlags(std::shared_ptr<Node>& directory) {}
+  virtual bool isHard() const;
+  virtual void removeIncomingDynamicLinks();
 
   ui32 getMaxDepth() const;
   void dump(std::stringstream& ss);
@@ -46,8 +48,9 @@ public:
   static void indent(std::stringstream & ss, ui32 depth, std::vector<bool>& indents);
 
 public:
+  Key mKey;
+  std::weak_ptr<Node> mWorkingNodeFlag;
   std::weak_ptr<Node> mParent;
-
   std::vector<std::weak_ptr<Link>> mIncomingHardLinks;
   std::vector<std::weak_ptr<Link>> mIncomingDynamicLinks;
 };

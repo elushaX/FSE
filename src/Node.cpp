@@ -1,5 +1,6 @@
 
 #include "Node.hpp"
+#include "Link.hpp"
 
 #include <memory>
 #include <sstream>
@@ -29,6 +30,37 @@ ui32 Node::getMaxDepth() const {
 std::shared_ptr<Node> Node::findNode(const std::vector<Key>& path, ui32 currentDepth) {
   assert(false);
   return nullptr;
+}
+
+bool Node::isHard() const {
+  return std::any_of(mIncomingHardLinks.begin(), mIncomingHardLinks.end(), [this](const std::weak_ptr<Link>& hardLink) {
+    auto linkNode = hardLink.lock();
+    assert(linkNode);
+    auto linkTarget = linkNode->getLink()->mWorkingNodeFlag.lock();
+    assert(linkTarget);
+    auto ownLink = mWorkingNodeFlag.lock();
+
+    // if hard link in the same working tree it does not count
+    return ownLink != linkTarget;
+  });
+}
+
+void Node::removeIncomingDynamicLinks() {
+  for (auto& dynamicLink : mIncomingDynamicLinks) {
+    auto linkNode = dynamicLink.lock();
+    assert(linkNode);
+    auto linkTarget = linkNode->getLink()->mWorkingNodeFlag.lock();
+    assert(linkTarget);
+    auto ownLink = mWorkingNodeFlag.lock();
+
+    if (ownLink == linkTarget) {
+      continue;
+    }
+
+    auto parentNode = linkNode->mParent.lock();
+    assert(parentNode);
+    parentNode->detachNode(linkNode->mKey);
+  }
 }
 
 std::shared_ptr<Node> Node::getTarget() {

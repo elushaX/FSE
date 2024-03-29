@@ -17,7 +17,20 @@ public:
   std::shared_ptr<Node> findNode(const std::vector<Key>& path, ui32 currentDepth = 0) override;
   std::shared_ptr<Node> findNode(const Key& path) override;
   [[nodiscard]] ui64 size() const override;
-  bool isDirectory() const override { return true; }
+
+  void clearFlags(std::shared_ptr<Node>& directory) override;
+  bool isHard() const override;
+  void removeIncomingDynamicLinks() override;
+
+  template <typename tFunctor>
+  static void traverse(std::shared_ptr<Node>& node, tFunctor functor) {
+    functor(node);
+    if (std::shared_ptr<Directory> directory = std::dynamic_pointer_cast<Directory>(node)) {
+      for (auto& member : directory->mMembers) {
+        traverse(member.second, functor);
+      }
+    }
+  }
 
 private:
   void getMaxDepthUtil(ui32 depth, ui32& maxDepth) const;

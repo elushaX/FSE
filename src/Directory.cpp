@@ -11,17 +11,12 @@ Directory::~Directory() = default;
 bool Directory::attachNode(const Key &newKey, std::shared_ptr<Node> newNode) {
   assert(mMembers.find(newKey) == mMembers.end());
   mMembers.insert({ newKey, newNode });
+  newNode->mKey = newKey;
   return true;
 }
 
 bool Directory::detachNode(const Key& key) {
   assert(mMembers.find(key) != mMembers.end());
-
-  //if (removeNode->key.incomingLinksHard || removeNode->key.incomingLinksDynamic) {
-  //  gError = "Cannot modify node with incoming hard links";
-  //  return false;
-  //}
-
   mMembers.erase(key);
   return true;
 }
@@ -91,4 +86,21 @@ std::shared_ptr<Node> Directory::clone() const {
     member.second->mParent = out;
   }
   return out;
+}
+
+void Directory::clearFlags(std::shared_ptr<Node> &directory) {
+  traverse(directory, [&](std::shared_ptr<Node>& node) {
+    node->mWorkingNodeFlag = directory;
+  });
+}
+
+bool Directory::isHard() const {
+  return std::any_of(mMembers.begin(), mMembers.end(), [](const auto& member) { return member.second->isHard(); });
+}
+
+void Directory::removeIncomingDynamicLinks() {
+  Node::removeIncomingDynamicLinks();
+  for (auto& member : mMembers) {
+    member.second->removeIncomingDynamicLinks();
+  }
 }
