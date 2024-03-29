@@ -38,7 +38,7 @@ public:
   virtual bool isDirectory() const { return false; }
   virtual bool isLink() const { return false; }
   virtual bool isHard() const { return false; }
-  
+
   ui32 getMaxDepth() const;
   void dump(std::stringstream& ss);
   void getNodeStraightPath(const std::shared_ptr<Node>& node, std::vector<std::shared_ptr<Node>>& path) const;

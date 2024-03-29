@@ -148,11 +148,15 @@ bool FileSystem::makeLink(const Path& source, const Path& target, bool isDynamic
     return false;
   }
 
-  auto newLink = std::shared_ptr<Node>(new Link(sourceNode, !isDynamic));
+  auto newLink = std::make_shared<Link>();
   newLink->mParent = parentNodeTarget;
 
-  assert(parentNodeTarget->attachNode(key, newLink));
+  if (!Link::linkNodes(newLink, sourceNode, !isDynamic)) {
+    gError = "Can not link node";
+    return false;
+  }
 
+  assert(parentNodeTarget->attachNode(key, newLink));
   return true;
 }
 

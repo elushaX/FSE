@@ -5,39 +5,51 @@
 #include <cassert>
 #include <algorithm>
 
-Link::Link(const std::shared_ptr<Node>& target, bool isHard) {
-  mIsHard = isHard;
-  mLink = target;
+Link::Link() {}
 
-  // if (mIsHard) {
-  //  target->mIncomingHardLinks.push_back(std::shared_ptr<Link>(this));
-  // } else {
-  //  target->mIncomingDynamicLinks.push_back(std::shared_ptr<Link>(this));
-  //}
-}
-
-Link::Link(const Link &node) : Node(node) {
-  mLink = node.mLink;
-  mIsHard = node.mIsHard;
-
-  // assert(mLink);
-  // if (mIsHard) {
-  //  mLink->mIncomingHardLinks.push_back(std::shared_ptr<Link>(this));
-  // } else {
-  //  mLink->mIncomingDynamicLinks.push_back(std::shared_ptr<Link>(this));
-  // }
-}
+Link::Link(const Link &node) : Node(node) {}
 
 std::shared_ptr<Node> Link::clone() const {
   return std::make_shared<Link>(*this);
 }
 
-Link::~Link() {
-  // assert(mLink);
-  // auto& links = mIsHard ? mLink->mIncomingHardLinks : mLink->mIncomingDynamicLinks;
-  // links.erase(std::remove(links.begin(), links.end(), this), links.end());
-  // Directory::updateTreeLinkCount(mLink);
-  // mLink = nullptr;
+Link::~Link() = default;
+
+bool Link::linkNodes(const std::shared_ptr<Link>& link, const std::shared_ptr<Node>& target, bool hard) {
+  if (target->getType() == LINK) return false;
+
+  assert(!link->mLink.lock());
+
+  link->mIsHard = hard;
+  link->mLink = target;
+
+  if (hard) {
+    target->mIncomingHardLinks.push_back(link);
+  } else {
+    target->mIncomingDynamicLinks.push_back(link);
+  }
+
+  return true;
+}
+
+bool Link::unlinkWithIncomingLinks(std::shared_ptr<Node>& target) {
+  assert(target->mIncomingHardLinks.empty());
+  auto& links = target->mIncomingDynamicLinks;
+
+  auto shouldRemove = [](const std::weak_ptr<Link>& link) {
+    // Modify the condition as needed
+    return link.expired();  // Remove expired weak pointers
+  };
+
+  links.erase(std::remove_if(links.begin(), links.end(), shouldRemove), links.end());
+}
+
+bool Link::removeOutgoingLinks(const std::shared_ptr<Link>& link) {
+// assert(mLink);
+// auto& links = mIsHard ? mLink->mIncomingHardLinks : mLink->mIncomingDynamicLinks;
+// links.erase(std::remove(links.begin(), links.end(), this), links.end());
+// Directory::updateTreeLinkCount(mLink);
+// mLink = nullptr;
 }
 
 std::shared_ptr<Node> Link::getLink() const {

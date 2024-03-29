@@ -85,7 +85,6 @@ Directory::Directory(const Directory &node) : Node(node) {
   }
 }
 
-
 std::shared_ptr<Node> Directory::clone() const {
   auto out = std::make_shared<Directory>(*this);
   for (auto& member : out->mMembers) {
