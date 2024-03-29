@@ -24,7 +24,7 @@ int main() {
 
   interpreter.interpret("rd d");
   interpreter.interpret("deltree A123");
-  interpreter.interpret("deltree A123-copy");
+  interpreter.interpret("deltree A123_copy");
 
   interpreter.interpret("md a");
   interpreter.interpret("md a/b");
@@ -33,11 +33,11 @@ int main() {
   interpreter.interpret("md a/b/c/a/k");
   interpreter.interpret("copy a /");
 
-  interpreter.interpret("mdl a/b/c /a-copy/k");
+  interpreter.interpret("mdl a/b/c /a_copy/k");
 
-  interpreter.interpret("move a/b/c /a-copy");
+  interpreter.interpret("move a/b/c /a_copy");
 
-  interpreter.interpret("del /a-copy/k/c");
+  interpreter.interpret("del /a_copy/k/c");
 
   return UnitTest::RunAllTests();
 }

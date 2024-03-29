@@ -11,7 +11,7 @@ void initializeTransitions() {
   for (char i = 'A'; i <= 'Z'; i++) transitions[i] = i /* + ('a' - 'A')*/;
   transitions['/'] = '/';
   transitions['.'] = '.';
-  transitions['-'] = '-';
+  transitions['_'] = '_';
 }
 
 Path::Path(const std::string& path) {

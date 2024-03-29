@@ -1,20 +1,19 @@
 #pragma once
 
+#include "Node.hpp"
 #include "Path.hpp"
-#include "DirectoryTree.hpp"
 
 #include <sstream>
 
-// FIX MEMORY VIOLATIONS WITH LINKS
+// restore path unwindingk
+// RESTORE LINKS
+// COPY operator update link targets
+// Improve error logs
+// use smart pointers
 
-
-// DONT STORE CACHE
-// DO O(N) deletion and moving
 // in-tree node links will report false to those operations and hard nodes deletion
 // use in node 'is_delete' flag and travers all nodes with link checks
 // remove mParent mTreeNode links
-
-// Key (is copied on each tree access) !!!
 
 // Functionality:
 // deleting directory - mark all nodes as deleted
@@ -51,6 +50,6 @@ private:
   bool isPathContainsCurrent(Node* node);
 
 private:
-  Directory* root = nullptr;
-  Directory* currentDirectory = nullptr;
+  Node* root = nullptr;
+  Node* currentDirectory = nullptr;
 };

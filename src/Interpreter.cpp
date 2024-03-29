@@ -92,7 +92,7 @@ Interpreter::Interpreter() {
 }
 
 void Interpreter::reportError(const std::string& description) {
-  std::cout << "ERROR : " << description << std::endl;
+  std::cout << "ERROR : " << description << "\n\n";
 }
 
 void Interpreter::printHelp() {
@@ -102,13 +102,14 @@ void Interpreter::printHelp() {
     std::cout << command.second.description;
     std::cout << "\n";
   }
+  std::cout << "\n\n";
 }
 
 void Interpreter::interpret(const std::string& command) {
   std::vector<std::string> words;
   getWords(command, words);
 
-  std::cout << command << "\n";
+  std::cout << ">> " << command << "\n";
 
   if (words.empty()) {
     reportError("Empty command");
