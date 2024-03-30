@@ -63,7 +63,7 @@ void Directory::dumpUtil(std::stringstream& ss, const Key& key, ui32 currentDept
 
   indent(ss, currentDepth, indents);
   ss << key;
-  ss << " [" << mIncomingHardLinks.size() << ":" << mIncomingDynamicLinks.size() << "] " << size();
+  // ss << " [" << mIncomingHardLinks.size() << ":" << mIncomingDynamicLinks.size() << "] " << size();
   ss << "\n";
 
   currentDepth++;

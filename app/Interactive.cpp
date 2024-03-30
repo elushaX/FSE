@@ -7,7 +7,7 @@ int main() {
   Interpreter interpreter;
   std::string line;
 
-  std::cout << "File System emulator.\n";
+  std::cout << "File System emulator. Enter 'stop' to exit\n";
 
   while (true) {
     std::cout << ">> ";
@@ -17,8 +17,6 @@ int main() {
       break;
     }
 
-    // Process the line here
-    //
     interpreter.interpret(line);
   }
 

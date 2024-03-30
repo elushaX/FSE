@@ -83,7 +83,7 @@ void Node::dump(std::stringstream& ss) {
 void Node::dumpUtil(std::stringstream& ss, const Key& key, ui32 currentDepth, std::vector<bool>& indents) {
   indent(ss, currentDepth, indents);
   ss << key;
-  ss << " [file]";
+  // ss << " [file]";
   ss << "\n";
 }
 
@@ -92,5 +92,5 @@ void Node::indent(std::stringstream & ss, ui32 depth, std::vector<bool>& indents
   for (auto i  = 0; i < depth - 1; i++) {
     ss << (indents[i] ? " |" : "  ");
   }
-  ss << " |_ ";
+  ss << " |_";
 }

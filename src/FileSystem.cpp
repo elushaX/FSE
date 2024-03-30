@@ -347,12 +347,12 @@ void FileSystem::log() const {
   root->getNodeStraightPath(currentDirectory, currentPath);
   std::reverse(currentPath.begin(), currentPath.end());
 
-  ss << "cd - ";
+  ss << "cd [";
   for (const auto& node : currentPath) {
     ss << node->mKey << "/";
   }
+  ss << "]\n";
 
-  ss << "\n";
   root->dump(ss);
   std::cout << ss.str();
 }

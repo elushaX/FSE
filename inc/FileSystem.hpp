@@ -5,12 +5,11 @@
 
 #include <sstream>
 
-// Fix copy
-// read file with commands
 // in subtree links should be in-tree after copy operation
 // use C:/ for root
 // links have unique names
 // tests
+// clean-ups
 
 class FileSystem {
 public:

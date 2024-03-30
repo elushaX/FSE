@@ -1,0 +1,25 @@
+
+m
+mD a
+mD /
+MD /A123
+cd /A123
+md asd
+md asd/b
+md asd/b/c
+md asd/b/c/d
+cd asd/b/c/d
+cd /
+copy A123 /
+rd d
+deltree A123
+deltree A123_copy
+md a
+md a/b
+md a/b/c
+mhl a /a/b/c/
+md a/b/c/a/k
+copy a /
+mdl a/b/c /a_copy/k
+move a/b/c /a_copy
+del /a_copy/k/c

@@ -13,7 +13,7 @@ class Interpreter {
 public:
   Interpreter();
 
-  void interpret(const std::string& command);
+  bool interpret(const std::string& command);
   void printHelp();
 
 private:
