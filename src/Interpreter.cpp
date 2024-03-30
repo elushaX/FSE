@@ -109,10 +109,8 @@ bool Interpreter::interpret(const std::string& command) {
   std::vector<std::string> words;
   getWords(command, words);
 
-  std::cout << command << "\n";
-
   if (words.empty()) {
-    reportError("Empty command");
+    if (verbose  && 0) reportError("Empty command");
     return false;
   }
 
@@ -122,22 +120,23 @@ bool Interpreter::interpret(const std::string& command) {
   auto iter = mCommands.find(commandName);
 
   if (iter == mCommands.end()) {
-    reportError("Command not found");
-    printHelp();
+    if (verbose  && 0) reportError("Command not found");
+    if (verbose  && 0) printHelp();
     return false;
   }
 
   if (iter->second.numArguments != words.size() - 1) {
-    reportError("Invalid number of arguments given for: " + commandName);
+    if (verbose  && 0) reportError("Invalid number of arguments given for: " + commandName);
     return false;
   }
 
   bool success = iter->second.callback(mFileSystem, words);
 
-  mFileSystem.log();
+  if (verbose && success) std::cout << command << "\n";
+  if (verbose && success) mFileSystem.log();
 
   if (!success) {
-    reportError(FileSystem::getLastError());
+    if (verbose && 0) reportError(FileSystem::getLastError());
     return false;
   }
 

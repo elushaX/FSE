@@ -55,11 +55,11 @@ void Directory::getMaxDepthUtil(ui32 depth, ui32& maxDepth) const {
 void Directory::dumpUtil(std::stringstream& ss, const Key& key, ui32 currentDepth, std::vector<bool>& indents) {
 
   indents[currentDepth] = true;
-
   indent(ss, currentDepth, indents);
+
   ss << key;
-  // ss << " [" << mIncomingHardLinks.size() << ":" << mIncomingDynamicLinks.size() << "] " << size();
-  ss << " [" << mWorkingNodeFlag.lock().get() << "] ";
+  ss << " [h" << mIncomingHardLinks.size() << ": d" << mIncomingDynamicLinks.size() << "] ";
+  // ss << " [" << mWorkingNodeFlag.lock().get() << "] ";
   ss << "\n";
 
   currentDepth++;
@@ -88,14 +88,6 @@ std::shared_ptr<Node> Directory::clone() const {
   auto out = std::make_shared<Directory>(*this);
   for (auto& member : out->mMembers) {
     member.second->mParent = out;
-  }
-
-  for (auto& member : out->mMembers) {
-    std::shared_ptr<Node>& node = member.second;
-    if (auto linkNode = std::dynamic_pointer_cast<Link>(node)) {
-      auto targetNode = linkNode->getTarget();
-      assert(Link::linkNodes(linkNode, targetNode, linkNode->isHardLink()));
-    }
   }
 
   return out;

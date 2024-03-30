@@ -28,6 +28,7 @@ public:
   bool makeLink(const Path& source, const Path& to, bool isDynamic);
 
   void log() const;
+  ui64 size() const;
 
   static const std::string& getLastError();
 

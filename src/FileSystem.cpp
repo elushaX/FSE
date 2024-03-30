@@ -81,6 +81,11 @@ bool FileSystem::makeDirectory(const Path& path) {
     return true;
   }
 
+  if (parentNode->getType() != Node::DIRECTORY) {
+    gError = "Target path is not a directory";
+    return false;
+  }
+
   auto directory = std::make_shared<Directory>();
   directory->mParent = parentNode;
 
@@ -108,6 +113,11 @@ bool FileSystem::makeFile(const Path& path) {
       return false;
     }
     return true;
+  }
+
+  if (parentNode->getType() != Node::DIRECTORY) {
+    gError = "Target path is not a directory";
+    return false;
   }
 
   auto newFile = std::make_shared<Node>();
@@ -146,6 +156,11 @@ bool FileSystem::makeLink(const Path& source, const Path& target, bool isDynamic
     return false;
   }
 
+  if (parentNodeTarget->getType() != Node::DIRECTORY) {
+    gError = "Target path is not a directory";
+    return false;
+  }
+
   const Key& key = source.getFilename();
 
   if (parentNodeTarget->findNode(key)) {
@@ -161,7 +176,11 @@ bool FileSystem::makeLink(const Path& source, const Path& target, bool isDynamic
     return false;
   }
 
-  assert(parentNodeTarget->attachNode(key, newLink));
+  if (!parentNodeTarget->attachNode(key, newLink)) {
+    log();
+  }
+
+  // assert(parentNodeTarget->attachNode(key, newLink));
   return true;
 }
 
@@ -247,6 +266,7 @@ bool FileSystem::removeFileOrLink(const Path &path) {
     return false;
   }
 
+  existingNode->removeIncomingDynamicLinks();
   existingNode->removeOutgoingLinks();
 
   if (!parentNode->detachNode(path.getFilename())) {
@@ -347,6 +367,11 @@ bool FileSystem::moveNode(const Path &source, const Path &target) {
     return false;
   }
 
+  if (parentNodeTarget->getType() != Node::DIRECTORY) {
+    gError = "Target path is not a directory";
+    return false;
+  }
+
   assert(parentNodeTarget->attachNode(key, sourceNode));
   assert(parentNodeSource->detachNode(key));
 
@@ -395,4 +420,8 @@ bool FileSystem::isPathContains(const std::shared_ptr<Node>& node, const std::sh
   }
 
   return true;
+}
+
+ui64 FileSystem::size() const {
+  return root->size();
 }

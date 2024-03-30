@@ -21,6 +21,9 @@ private:
 
 private:
   std::map<std::string, Command> mCommands;
-  FileSystem mFileSystem;
   std::string mError;
+
+public:
+  FileSystem mFileSystem;
+  bool verbose = true;
 };

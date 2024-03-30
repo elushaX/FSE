@@ -37,7 +37,7 @@ public:
   virtual std::shared_ptr<Node> findNode(const std::vector<Key>& path, ui32 currentDepth = 0);
   virtual std::shared_ptr<Node> findNode(const Key& path) { return nullptr; }
 
-  virtual void clearFlags(std::shared_ptr<Node>& directory) {}
+  virtual void clearFlags(std::shared_ptr<Node>& directory);
   virtual bool isHardNode() const;
   virtual void removeIncomingDynamicLinks();
   virtual void removeOutgoingLinks() {}

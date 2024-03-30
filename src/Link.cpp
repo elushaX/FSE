@@ -4,16 +4,18 @@
 #include <sstream>
 #include <cassert>
 #include <algorithm>
+#include <iostream>
 
 Link::Link() {}
 
 Link::Link(const Link &node) : Node(node) {
-  mLink = node.mLink;
-  mIsHard = node.mIsHard;
+
 }
 
 std::shared_ptr<Node> Link::clone() const {
-  return std::make_shared<Link>(*this);
+  auto out = std::make_shared<Link>(*this);
+  Link::linkNodes(out, getLink(), isHardLink());
+  return out;
 }
 
 Link::~Link() = default;
@@ -42,7 +44,9 @@ void Link::removeOutgoingLinks() {
   auto& links = isHardLink() ? target->mIncomingHardLinks : target->mIncomingDynamicLinks;
   links.erase(std::remove_if(links.begin(), links.end(), [&](std::weak_ptr<Link>& node){
     auto targetLink = node.lock();
-    return !targetLink || targetLink.get() == this;
+    assert(targetLink);
+    auto res = targetLink.get() == this;
+    return res;
   }), links.end());
 }
 
@@ -62,12 +66,17 @@ std::shared_ptr<Node> Link::getTarget() {
 
 std::shared_ptr<Node> Link::findNode(const std::vector<Key>& path, ui32 currentDepth) {
   assert(path.size() != currentDepth);
-  return getLink()->findNode(path, currentDepth + 1);
+  return getLink()->findNode(path, currentDepth);
 }
 
 void Link::dumpUtil(std::stringstream& ss, const Key& key, ui32 currentDepth, std::vector<bool>& indents) {
   indent(ss, currentDepth, indents);
-  ss << key << (isHardLink() ?  " hlink[" : " dlink[");
+
+  ss << key;
+  ss << (isHardLink() ?  " hlink[" : " dlink[");
+
+  ss << " [h" << mIncomingHardLinks.size() << ": d" << mIncomingDynamicLinks.size() << "] ";
+
   std::vector<std::shared_ptr<Node>> path;
   getNodeStraightPath(getLink(), path);
   std::reverse(path.begin(), path.end());

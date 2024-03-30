@@ -31,8 +31,12 @@ ui32 Node::getMaxDepth() const {
 }
 
 std::shared_ptr<Node> Node::findNode(const std::vector<Key>& path, ui32 currentDepth) {
-  assert(false);
+  // assert(false);
   return nullptr;
+}
+
+void Node::clearFlags(std::shared_ptr<Node>& directory) {
+  mWorkingNodeFlag = directory;
 }
 
 bool Node::isHardNode() const {
@@ -56,7 +60,7 @@ void Node::removeIncomingDynamicLinks() {
 
     auto linkTarget = linkNode->mWorkingNodeFlag.lock();
     if (linkTarget && ownLink == linkTarget) {
-      continue;
+      // continue;
     }
 
     auto parentNode = linkNode->mParent.lock();
@@ -85,7 +89,7 @@ void Node::dump(std::stringstream& ss) {
 void Node::dumpUtil(std::stringstream& ss, const Key& key, ui32 currentDepth, std::vector<bool>& indents) {
   indent(ss, currentDepth, indents);
   ss << key;
-  // ss << " [file]";
+  ss << " [h" << mIncomingHardLinks.size() << ": d" << mIncomingDynamicLinks.size() << "] ";
   ss << "\n";
 }
 
