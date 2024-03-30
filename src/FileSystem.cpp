@@ -24,7 +24,7 @@ std::shared_ptr<Node> FileSystem::getNode(const Path& path, bool parent) {
   auto currentNode = path.isAbsolute() ? root : currentDirectory;
   auto parentNode = pathChain.empty() ? currentNode : currentNode->findNode(pathChain);
 
-  if (parent) {
+  if (parent && parentNode) {
     while (parentNode->getTarget()) {
       parentNode = parentNode->getTarget();
     }
