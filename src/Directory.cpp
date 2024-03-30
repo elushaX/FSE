@@ -1,12 +1,20 @@
 
 #include "Directory.hpp"
+#include "Link.hpp"
 
 #include <sstream>
 #include <algorithm>
 
 Directory::Directory() = default;
 
-Directory::~Directory() = default;
+Directory::~Directory() {
+  for (auto& member : mMembers) {
+    std::shared_ptr<Node>& node = member.second;
+    if (auto linkNode = std::dynamic_pointer_cast<Link>(node)) {
+      Link::unlinkNodes(linkNode);
+    }
+  }
+}
 
 bool Directory::attachNode(const Key &newKey, std::shared_ptr<Node> newNode) {
   assert(mMembers.find(newKey) == mMembers.end());
@@ -55,7 +63,7 @@ void Directory::dumpUtil(std::stringstream& ss, const Key& key, ui32 currentDept
 
   indent(ss, currentDepth, indents);
   ss << key;
-  ss << " [" << mIncomingHardLinks.size() << ":" << mIncomingDynamicLinks.size() << "]";
+  ss << " [" << mIncomingHardLinks.size() << ":" << mIncomingDynamicLinks.size() << "] " << size();
   ss << "\n";
 
   currentDepth++;
@@ -85,6 +93,15 @@ std::shared_ptr<Node> Directory::clone() const {
   for (auto& member : out->mMembers) {
     member.second->mParent = out;
   }
+
+  for (auto& member : out->mMembers) {
+    std::shared_ptr<Node>& node = member.second;
+    if (auto linkNode = std::dynamic_pointer_cast<Link>(node)) {
+      auto targetNode = linkNode->getTarget();
+      assert(Link::linkNodes(linkNode, targetNode, linkNode->isHard()));
+    }
+  }
+
   return out;
 }
 

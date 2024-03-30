@@ -20,6 +20,7 @@ public:
   void dumpUtil(std::stringstream& ss, const Key& key, ui32 currentDepth, std::vector<bool>& indents) override;
 
   static bool linkNodes(const std::shared_ptr<Link>& link, const std::shared_ptr<Node>& target, bool hard);
+  static void unlinkNodes(const std::shared_ptr<Link>& link);
 
 private:
   std::weak_ptr<Node> mLink;

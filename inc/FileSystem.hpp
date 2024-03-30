@@ -5,15 +5,12 @@
 
 #include <sstream>
 
-// restore path unwindingk
-// RESTORE LINKS
-// COPY operator update link targets on copied nodes
-
-// use in node 'is_delete' flag and travers all nodes with link checks
-// deleting directory - mark all nodes as deleted
-// traverse and check for links
-// unlink if those links are outgoing
-
+// Fix copy
+// read file with commands
+// in subtree links should be in-tree after copy operation
+// use C:/ for root
+// links have unique names
+// tests
 
 class FileSystem {
 public:

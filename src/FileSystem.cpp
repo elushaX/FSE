@@ -237,12 +237,16 @@ bool FileSystem::removeFileOrLink(const Path &path) {
 
   existingNode->clearFlags(parentNode);
   if (existingNode->isHard()) {
-    gError = "File or link is referenced by a hard links";
+    gError = "File is referenced by a hard link";
     return false;
   }
 
+  if (auto link = dynamic_pointer_cast<Link>(existingNode)) {
+    Link::unlinkNodes(link);
+  }
+
   if (!parentNode->detachNode(path.getFilename())) {
-    gError = "Can not remove file or link because it has hard references";
+    gError = "Can not remove file or link because it is referenced by a hard link";
     return false;
   }
 
@@ -325,7 +329,7 @@ bool FileSystem::moveNode(const Path &source, const Path &target) {
 
   sourceNode->clearFlags(parentNodeSource);
   if (sourceNode->isHard()) {
-    gError = "Node is referenced by a hard links";
+    gError = "Node is referenced by a hard link";
     return false;
   }
 

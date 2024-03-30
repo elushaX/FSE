@@ -7,7 +7,10 @@
 
 Link::Link() {}
 
-Link::Link(const Link &node) : Node(node) {}
+Link::Link(const Link &node) : Node(node) {
+  mLink = node.mLink;
+  mIsHard = node.mIsHard;
+}
 
 std::shared_ptr<Node> Link::clone() const {
   return std::make_shared<Link>(*this);
@@ -18,7 +21,7 @@ Link::~Link() = default;
 bool Link::linkNodes(const std::shared_ptr<Link>& link, const std::shared_ptr<Node>& target, bool hard) {
   if (target->getType() == LINK) return false;
 
-  assert(!link->mLink.lock());
+  // assert(!link->mLink.lock());
 
   link->mIsHard = hard;
   link->mLink = target;
@@ -30,6 +33,21 @@ bool Link::linkNodes(const std::shared_ptr<Link>& link, const std::shared_ptr<No
   }
 
   return true;
+}
+
+void Link::unlinkNodes(const std::shared_ptr<Link>& link) {
+  auto target = link->mLink.lock();
+
+  // this is happening when
+  if (!target) return;
+
+  auto& links = link->isHard() ? target->mIncomingHardLinks : target->mIncomingDynamicLinks;
+
+  links.erase(std::remove_if(links.begin(), links.end(), [&](std::weak_ptr<Link>& node){
+    auto targetLink = node.lock();
+    assert(targetLink);
+    return targetLink == link;
+  }), links.end());
 }
 
 std::shared_ptr<Node> Link::getLink() const {
