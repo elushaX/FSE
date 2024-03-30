@@ -6,8 +6,11 @@
 #include <sstream>
 #include <cassert>
 #include <algorithm>
+#include <iostream>
 
-Node::Node(const Node &node) {}
+Node::Node(const Node &node) {
+  mKey = node.mKey;
+}
 
 Node::~Node() {
   // assert(mIncomingHardLinks.empty());
@@ -32,28 +35,27 @@ std::shared_ptr<Node> Node::findNode(const std::vector<Key>& path, ui32 currentD
   return nullptr;
 }
 
-bool Node::isHard() const {
+bool Node::isHardNode() const {
   return std::any_of(mIncomingHardLinks.begin(), mIncomingHardLinks.end(), [this](const std::weak_ptr<Link>& hardLink) {
     auto linkNode = hardLink.lock();
-    assert(linkNode);
-    auto linkTarget = linkNode->getLink()->mWorkingNodeFlag.lock();
-    assert(linkTarget);
     auto ownLink = mWorkingNodeFlag.lock();
+    assert(linkNode && ownLink);
+
+    auto linkTarget = linkNode->mWorkingNodeFlag.lock();
 
     // if hard link in the same working tree it does not count
-    return ownLink != linkTarget;
+    return !linkTarget || ownLink != linkTarget;
   });
 }
 
 void Node::removeIncomingDynamicLinks() {
   for (auto& dynamicLink : mIncomingDynamicLinks) {
     auto linkNode = dynamicLink.lock();
-    assert(linkNode);
-    auto linkTarget = linkNode->getLink()->mWorkingNodeFlag.lock();
-    assert(linkTarget);
     auto ownLink = mWorkingNodeFlag.lock();
+    assert(linkNode && ownLink);
 
-    if (ownLink == linkTarget) {
+    auto linkTarget = linkNode->mWorkingNodeFlag.lock();
+    if (linkTarget && ownLink == linkTarget) {
       continue;
     }
 
@@ -76,7 +78,7 @@ void Node::getNodeStraightPath(const std::shared_ptr<Node>& node, std::vector<st
 void Node::dump(std::stringstream& ss) {
   std::vector<bool> indents;
   indents.resize(getMaxDepth());
-  dumpUtil(ss, "/", 0, indents);
+  dumpUtil(ss, mKey, 0, indents);
   ss << "\n";
 }
 

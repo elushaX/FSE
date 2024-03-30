@@ -11,7 +11,7 @@ public:
   NodeType getType() const override { return LINK; }
   [[nodiscard]] std::shared_ptr<Node> clone() const override;
   [[nodiscard]] std::shared_ptr<Node> getLink() const;
-  [[nodiscard]] bool isHard() const;
+  [[nodiscard]] bool isHardLink() const;
 
   std::shared_ptr<Node> getTarget() override;
 
@@ -20,7 +20,8 @@ public:
   void dumpUtil(std::stringstream& ss, const Key& key, ui32 currentDepth, std::vector<bool>& indents) override;
 
   static bool linkNodes(const std::shared_ptr<Link>& link, const std::shared_ptr<Node>& target, bool hard);
-  static void unlinkNodes(const std::shared_ptr<Link>& link);
+
+  void removeOutgoingLinks() override;
 
 private:
   std::weak_ptr<Node> mLink;

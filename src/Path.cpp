@@ -1,7 +1,9 @@
 #include "Path.hpp"
 #include <cassert>
+#include <cstring>
 
 std::vector<char> transitions;
+constexpr auto drivePrefix = "C:";
 
 void initializeTransitions() {
   transitions.resize(256);
@@ -50,14 +52,35 @@ const std::string& Path::getFilename() const {
 }
 
 void Path::set(const std::string& path) {
+  mIsValid = true;
+
   if (path.empty()) {
     mIsValid = false;
     return;
   }
 
   std::string lowercasePath = path;
-  mIsValid = true;
-  mAbsolute = path.front() == '/';
+
+  const auto drivePrefixSize = std::strlen(drivePrefix);
+  if (drivePrefixSize) {
+    if ((lowercasePath.size() >= drivePrefixSize) && (std::memcmp(lowercasePath.c_str(), drivePrefix, drivePrefixSize) == 0)) {
+      lowercasePath.erase(0, drivePrefixSize);
+      mAbsolute = true;
+      if (lowercasePath.empty()) lowercasePath = "/";
+      else if (lowercasePath[0] != '/') {
+        mIsValid = false;
+        return;
+      }
+    } else {
+      if (lowercasePath[0] == '/') {
+        mIsValid = false;
+        return;
+      }
+    }
+  } else {
+    mAbsolute = path.front() == '/';
+  }
+
   mDirectory = path.back() == '/';
   mChain.clear();
 

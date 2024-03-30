@@ -11,6 +11,7 @@
 // copy operator exit if exists, do not rename
 // clean-ups
 // in subtree links should be in-tree after copy operation
+// update link if exists
 
 class FileSystem {
 public:
@@ -31,7 +32,7 @@ public:
   static const std::string& getLastError();
 
 private:
-  bool isPathContainsCurrent(const std::shared_ptr<Node>& node);
+  bool isPathContains(const std::shared_ptr<Node>& node, const std::shared_ptr<Node>& contains);
   std::shared_ptr<Node> getNode(const Path& path, bool parent);
 
 private:

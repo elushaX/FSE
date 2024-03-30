@@ -35,18 +35,14 @@ bool Link::linkNodes(const std::shared_ptr<Link>& link, const std::shared_ptr<No
   return true;
 }
 
-void Link::unlinkNodes(const std::shared_ptr<Link>& link) {
-  auto target = link->mLink.lock();
+void Link::removeOutgoingLinks() {
+  auto target = mLink.lock();
+  assert(target);
 
-  // this is happening when
-  if (!target) return;
-
-  auto& links = link->isHard() ? target->mIncomingHardLinks : target->mIncomingDynamicLinks;
-
+  auto& links = isHardLink() ? target->mIncomingHardLinks : target->mIncomingDynamicLinks;
   links.erase(std::remove_if(links.begin(), links.end(), [&](std::weak_ptr<Link>& node){
     auto targetLink = node.lock();
-    assert(targetLink);
-    return targetLink == link;
+    return !targetLink || targetLink.get() == this;
   }), links.end());
 }
 
@@ -56,7 +52,7 @@ std::shared_ptr<Node> Link::getLink() const {
   return target;
 }
 
-bool Link::isHard() const {
+bool Link::isHardLink() const {
   return mIsHard;
 }
 
@@ -71,12 +67,16 @@ std::shared_ptr<Node> Link::findNode(const std::vector<Key>& path, ui32 currentD
 
 void Link::dumpUtil(std::stringstream& ss, const Key& key, ui32 currentDepth, std::vector<bool>& indents) {
   indent(ss, currentDepth, indents);
-  ss << key << (isHard() ?  " hlink[" : " dlink[");
+  ss << key << (isHardLink() ?  " hlink[" : " dlink[");
   std::vector<std::shared_ptr<Node>> path;
   getNodeStraightPath(getLink(), path);
   std::reverse(path.begin(), path.end());
-  for (auto& node : path)
-    ss << node->mKey << "/";
+
+  for (auto it = path.begin(); it != path.end(); ++it) {
+    ss << (*it)->mKey;
+    if (std::distance(it, path.end()) > 1) ss << "/";
+  }
+
   ss << "]\n";
 }
 

@@ -109,6 +109,8 @@ bool Interpreter::interpret(const std::string& command) {
   std::vector<std::string> words;
   getWords(command, words);
 
+  std::cout << command << "\n";
+
   if (words.empty()) {
     reportError("Empty command");
     return false;

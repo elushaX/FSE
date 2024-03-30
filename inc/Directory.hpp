@@ -19,8 +19,9 @@ public:
   [[nodiscard]] ui64 size() const override;
 
   void clearFlags(std::shared_ptr<Node>& directory) override;
-  bool isHard() const override;
+  bool isHardNode() const override;
   void removeIncomingDynamicLinks() override;
+  void removeOutgoingLinks() override;
 
   template <typename tFunctor>
   static void traverse(std::shared_ptr<Node>& node, tFunctor functor) {

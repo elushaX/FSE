@@ -12,6 +12,7 @@ static std::string gError;
 
 FileSystem::FileSystem() {
   root = std::make_shared<Directory>();
+  root->mKey = "C:";
   currentDirectory = root;
   initializeTransitions();
 }
@@ -34,7 +35,7 @@ std::shared_ptr<Node> FileSystem::getNode(const Path& path, bool parent) {
 
 bool FileSystem::changeCurrent(const Path& path) {
   if (path.isInvalid()) {
-    gError = "Path not found";
+    gError = "Invalid path";
     return false;
   }
 
@@ -43,6 +44,10 @@ bool FileSystem::changeCurrent(const Path& path) {
   if (!parentNode) {
     gError = "No such directory";
     return false;
+  }
+
+  while (parentNode->getTarget()) {
+    parentNode = parentNode->getTarget();
   }
 
   if (parentNode->getType() != Node::DIRECTORY) {
@@ -63,14 +68,14 @@ bool FileSystem::makeDirectory(const Path& path) {
   auto parentNode = getNode(path, true);
 
   if (!parentNode) {
-    gError = "Invalid path";
+    gError = "Path not found";
     return false;
   }
 
   auto existingNode = parentNode->findNode(path.getFilename());
   if (existingNode) {
     if (!(existingNode->getType() == Node::DIRECTORY && existingNode->empty())) {
-      gError = "File or link with such name already exists";
+      gError = "File, link or not empty directory with such name already exists";
       return false;
     }
     return true;
@@ -92,7 +97,7 @@ bool FileSystem::makeFile(const Path& path) {
   auto parentNode = getNode(path, true);
 
   if (!parentNode) {
-    gError = "Invalid path";
+    gError = "Path not found";
     return false;
   }
 
@@ -120,19 +125,19 @@ bool FileSystem::makeLink(const Path& source, const Path& target, bool isDynamic
 
   auto parentNodeSource = getNode(source, true);
   if (!parentNodeSource) {
-    gError = "Invalid source path";
+    gError = "Source path not found";
     return false;
   }
 
   auto parentNodeTarget = getNode(target, false);
   if (!parentNodeTarget) {
-    gError = "Invalid target path";
+    gError = "Destination path not found";
     return false;
   }
 
   auto sourceNode = parentNodeSource->findNode(source.getFilename());
   if (!sourceNode) {
-    gError = "Invalid source path";
+    gError = "Source path not found";
     return false;
   }
 
@@ -189,19 +194,20 @@ bool FileSystem::removeDirectory(const Path& path, bool recursively) {
     return false;
   }
 
-  if (isPathContainsCurrent(existingNode)) {
+  if (isPathContains(existingNode, currentDirectory)) {
     gError = "Can not remove directory you are currently working in";
     return false;
   }
 
-  existingNode->clearFlags(parentNode);
-  if (existingNode->isHard()) {
-    gError = "Directory is referenced by a hard links";
+  existingNode->clearFlags(existingNode);
+  if (existingNode->isHardNode()) {
+    gError = "Directory is referenced by a hard link";
     return false;
   }
 
   // deletes dynamic incoming links to this file system sub-ree
   existingNode->removeIncomingDynamicLinks();
+  existingNode->removeOutgoingLinks();
 
   if (!parentNode->detachNode(path.getFilename())) {
     gError = "Can not remove directory because it has hard references";
@@ -235,15 +241,13 @@ bool FileSystem::removeFileOrLink(const Path &path) {
     return false;
   }
 
-  existingNode->clearFlags(parentNode);
-  if (existingNode->isHard()) {
+  existingNode->clearFlags(existingNode);
+  if (existingNode->isHardNode()) {
     gError = "File is referenced by a hard link";
     return false;
   }
 
-  if (auto link = dynamic_pointer_cast<Link>(existingNode)) {
-    Link::unlinkNodes(link);
-  }
+  existingNode->removeOutgoingLinks();
 
   if (!parentNode->detachNode(path.getFilename())) {
     gError = "Can not remove file or link because it is referenced by a hard link";
@@ -320,6 +324,16 @@ bool FileSystem::moveNode(const Path &source, const Path &target) {
     return false;
   }
 
+  if (isPathContains(sourceNode, currentDirectory)) {
+    gError = "Can not move directory you are currently working in";
+    return false;
+  }
+
+  if (isPathContains(sourceNode, parentNodeTarget)) {
+    gError = "Can not move node into itself";
+    return false;
+  }
+
   const Key& key = source.getFilename();
 
   if (parentNodeTarget->findNode(key)) {
@@ -327,8 +341,8 @@ bool FileSystem::moveNode(const Path &source, const Path &target) {
     return false;
   }
 
-  sourceNode->clearFlags(parentNodeSource);
-  if (sourceNode->isHard()) {
+  sourceNode->clearFlags(sourceNode);
+  if (sourceNode->isHardNode()) {
     gError = "Node is referenced by a hard link";
     return false;
   }
@@ -347,11 +361,12 @@ void FileSystem::log() const {
   root->getNodeStraightPath(currentDirectory, currentPath);
   std::reverse(currentPath.begin(), currentPath.end());
 
-  ss << "cd [";
-  for (const auto& node : currentPath) {
-    ss << node->mKey << "/";
+  ss << "pwd [ ";
+  for (auto it = currentPath.begin(); it != currentPath.end(); ++it) {
+    ss << (*it)->mKey;
+    if (std::distance(it, currentPath.end()) > 1) ss << "/";
   }
-  ss << "]\n";
+  ss << " ]\n";
 
   root->dump(ss);
   std::cout << ss.str();
@@ -361,11 +376,11 @@ const std::string& FileSystem::getLastError() {
   return gError;
 }
 
-bool FileSystem::isPathContainsCurrent(const std::shared_ptr<Node>& node) {
+bool FileSystem::isPathContains(const std::shared_ptr<Node>& node, const std::shared_ptr<Node>& current) {
   std::vector<std::shared_ptr<Node>> currentPath;
   std::vector<std::shared_ptr<Node>> path;
 
-  root->getNodeStraightPath(currentDirectory, currentPath);
+  root->getNodeStraightPath(current, currentPath);
   root->getNodeStraightPath(node, path);
 
   std::reverse(currentPath.begin(), currentPath.end());

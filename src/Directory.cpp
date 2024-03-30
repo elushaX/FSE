@@ -4,16 +4,11 @@
 
 #include <sstream>
 #include <algorithm>
+#include <iostream>
 
 Directory::Directory() = default;
 
 Directory::~Directory() {
-  for (auto& member : mMembers) {
-    std::shared_ptr<Node>& node = member.second;
-    if (auto linkNode = std::dynamic_pointer_cast<Link>(node)) {
-      Link::unlinkNodes(linkNode);
-    }
-  }
 }
 
 bool Directory::attachNode(const Key &newKey, std::shared_ptr<Node> newNode) {
@@ -64,6 +59,7 @@ void Directory::dumpUtil(std::stringstream& ss, const Key& key, ui32 currentDept
   indent(ss, currentDepth, indents);
   ss << key;
   // ss << " [" << mIncomingHardLinks.size() << ":" << mIncomingDynamicLinks.size() << "] " << size();
+  ss << " [" << mWorkingNodeFlag.lock().get() << "] ";
   ss << "\n";
 
   currentDepth++;
@@ -98,7 +94,7 @@ std::shared_ptr<Node> Directory::clone() const {
     std::shared_ptr<Node>& node = member.second;
     if (auto linkNode = std::dynamic_pointer_cast<Link>(node)) {
       auto targetNode = linkNode->getTarget();
-      assert(Link::linkNodes(linkNode, targetNode, linkNode->isHard()));
+      assert(Link::linkNodes(linkNode, targetNode, linkNode->isHardLink()));
     }
   }
 
@@ -111,13 +107,22 @@ void Directory::clearFlags(std::shared_ptr<Node> &directory) {
   });
 }
 
-bool Directory::isHard() const {
-  return std::any_of(mMembers.begin(), mMembers.end(), [](const auto& member) { return member.second->isHard(); });
+bool Directory::isHardNode() const {
+  if (Node::isHardNode()) return true;
+  return std::any_of(mMembers.begin(), mMembers.end(), [](const auto& member) {
+    return member.second->isHardNode();
+  });
 }
 
 void Directory::removeIncomingDynamicLinks() {
   Node::removeIncomingDynamicLinks();
   for (auto& member : mMembers) {
     member.second->removeIncomingDynamicLinks();
+  }
+}
+
+void Directory::removeOutgoingLinks() {
+  for (auto& member : mMembers) {
+    member.second->removeOutgoingLinks();
   }
 }
