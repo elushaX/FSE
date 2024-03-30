@@ -40,12 +40,13 @@ SUITE(FSE) {
 
   TEST (CommandNoise) {
     Interpreter interpreter;
+    interpreter.logType = Interpreter::NONE;
 
     StringDistribution commands({
         { "md", 10 },
         { "mf", 10 },
-        { "mhl", 10 },
-        { "mdl", 10 },
+        { "mhl", 20 },
+        { "mdl", 20 },
         { "cd", 5 },
         { "rd", 1 },
         { "del", 10 },
@@ -81,8 +82,6 @@ SUITE(FSE) {
       if (pathLenDist(rng) % 2) generatePath(ss);
       return ss.str();
     });
-
-    interpreter.mFileSystem.log();
   }
 }
 

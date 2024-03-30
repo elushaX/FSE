@@ -91,11 +91,14 @@ Interpreter::Interpreter() {
   };
 }
 
-void Interpreter::reportError(const std::string& description) {
-  std::cout << "ERROR: " << description << "\n\n";
+void Interpreter::reportError(const std::string& description) const {
+  if (logType == DEFAULT)
+    std::cout << "ERROR: " << description << "\n\n";
 }
 
 void Interpreter::printHelp() {
+  if (logType != DEFAULT) return;
+
   std::cout << "Commands: \n";
   for (auto& command : mCommands) {
     std::cout << command.first << " - ";
@@ -110,7 +113,7 @@ bool Interpreter::interpret(const std::string& command) {
   getWords(command, words);
 
   if (words.empty()) {
-    if (verbose  && 0) reportError("Empty command");
+    reportError("Empty command");
     return false;
   }
 
@@ -120,23 +123,25 @@ bool Interpreter::interpret(const std::string& command) {
   auto iter = mCommands.find(commandName);
 
   if (iter == mCommands.end()) {
-    if (verbose  && 0) reportError("Command not found");
-    if (verbose  && 0) printHelp();
+    reportError("Command not found");
+    printHelp();
     return false;
   }
 
   if (iter->second.numArguments != words.size() - 1) {
-    if (verbose  && 0) reportError("Invalid number of arguments given for: " + commandName);
+    reportError("Invalid number of arguments given for: " + commandName);
     return false;
   }
 
   bool success = iter->second.callback(mFileSystem, words);
 
-  if (verbose && success) std::cout << command << "\n";
-  if (verbose && success) mFileSystem.log();
+  if (logType == DEFAULT || (logType == DEBUG && success)) {
+    std::cout << command << "\n";
+    mFileSystem.log();
+  }
 
   if (!success) {
-    if (verbose && 0) reportError(FileSystem::getLastError());
+    reportError(FileSystem::getLastError());
     return false;
   }
 

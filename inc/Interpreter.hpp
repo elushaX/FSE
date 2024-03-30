@@ -17,7 +17,7 @@ public:
   void printHelp();
 
 private:
-  static void reportError(const std::string& string);
+  void reportError(const std::string& string) const;
 
 private:
   std::map<std::string, Command> mCommands;
@@ -25,5 +25,5 @@ private:
 
 public:
   FileSystem mFileSystem;
-  bool verbose = true;
+  enum LoggingPolicy { DEFAULT, DEBUG, NONE } logType = DEFAULT;
 };

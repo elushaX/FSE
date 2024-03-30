@@ -7,11 +7,12 @@
 #include <random>
 #include <chrono>
 
-const ui64 timeLimitSec = 5;
+const ui64 timeLimitSec = 3;
 const ui64 itemLimit = 1e6;
 
 std::random_device rd;
-std::mt19937 rng;
+std::mt19937 rng(rd());
+// std::mt19937 rng;
 
 class StringDistribution {
 private:

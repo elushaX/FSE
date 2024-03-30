@@ -53,19 +53,16 @@ void Directory::getMaxDepthUtil(ui32 depth, ui32& maxDepth) const {
 }
 
 void Directory::dumpUtil(std::stringstream& ss, const Key& key, ui32 currentDepth, std::vector<bool>& indents) {
-
   indents[currentDepth] = true;
   indent(ss, currentDepth, indents);
 
   ss << key;
-  ss << " [h" << mIncomingHardLinks.size() << ": d" << mIncomingDynamicLinks.size() << "] ";
+  // ss << " [h" << mIncomingHardLinks.size() << ": d" << mIncomingDynamicLinks.size() << "] ";
   // ss << " [" << mWorkingNodeFlag.lock().get() << "] ";
   ss << "\n";
 
   currentDepth++;
-
   if (mMembers.empty()) return;
-
   const auto& lastNode = mMembers.rbegin()->first;
   for (auto & member : mMembers) {
     if (lastNode == member.first) indents[currentDepth - 1] = false;

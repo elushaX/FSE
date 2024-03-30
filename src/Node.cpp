@@ -12,13 +12,7 @@ Node::Node(const Node &node) {
   mKey = node.mKey;
 }
 
-Node::~Node() {
-  // assert(mIncomingHardLinks.empty());
-  // for (auto dynamicLink : mIncomingDynamicLinks) {
-  //  dynamicLink->mParent->detachNode(dynamicLink->mTreeNode->key.val);
-  //  delete dynamicLink;
-  //
-}
+Node::~Node() = default;
 
 std::shared_ptr<Node> Node::clone() const {
   return std::make_shared<Node>(*this);
@@ -89,7 +83,7 @@ void Node::dump(std::stringstream& ss) {
 void Node::dumpUtil(std::stringstream& ss, const Key& key, ui32 currentDepth, std::vector<bool>& indents) {
   indent(ss, currentDepth, indents);
   ss << key;
-  ss << " [h" << mIncomingHardLinks.size() << ": d" << mIncomingDynamicLinks.size() << "] ";
+  // ss << " [h" << mIncomingHardLinks.size() << ": d" << mIncomingDynamicLinks.size() << "] ";
   ss << "\n";
 }
 

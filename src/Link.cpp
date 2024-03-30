@@ -6,11 +6,9 @@
 #include <algorithm>
 #include <iostream>
 
-Link::Link() {}
+Link::Link() = default;
 
-Link::Link(const Link &node) : Node(node) {
-
-}
+Link::Link(const Link &node) : Node(node) {}
 
 std::shared_ptr<Node> Link::clone() const {
   auto out = std::make_shared<Link>(*this);
@@ -37,6 +35,7 @@ bool Link::linkNodes(const std::shared_ptr<Link>& link, const std::shared_ptr<No
   return true;
 }
 
+// TODO : move from link to node class or vise versa
 void Link::removeOutgoingLinks() {
   auto target = mLink.lock();
   assert(target);
@@ -45,8 +44,7 @@ void Link::removeOutgoingLinks() {
   links.erase(std::remove_if(links.begin(), links.end(), [&](std::weak_ptr<Link>& node){
     auto targetLink = node.lock();
     assert(targetLink);
-    auto res = targetLink.get() == this;
-    return res;
+    return targetLink.get() == this;
   }), links.end());
 }
 
@@ -70,16 +68,15 @@ std::shared_ptr<Node> Link::findNode(const std::vector<Key>& path, ui32 currentD
 }
 
 void Link::dumpUtil(std::stringstream& ss, const Key& key, ui32 currentDepth, std::vector<bool>& indents) {
+  std::vector<std::shared_ptr<Node>> path;
+  getNodeStraightPath(getLink(), path);
+  std::reverse(path.begin(), path.end());
+
   indent(ss, currentDepth, indents);
 
   ss << key;
   ss << (isHardLink() ?  " hlink[" : " dlink[");
-
-  ss << " [h" << mIncomingHardLinks.size() << ": d" << mIncomingDynamicLinks.size() << "] ";
-
-  std::vector<std::shared_ptr<Node>> path;
-  getNodeStraightPath(getLink(), path);
-  std::reverse(path.begin(), path.end());
+  // ss << " [h" << mIncomingHardLinks.size() << ": d" << mIncomingDynamicLinks.size() << "] ";
 
   for (auto it = path.begin(); it != path.end(); ++it) {
     ss << (*it)->mKey;
