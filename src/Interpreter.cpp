@@ -126,7 +126,7 @@ bool Interpreter::interpret(const std::string& command) {
   }
 
   if (iter->second.numArguments != words.size() - 1) {
-    reportError("invalid number of arguments given");
+    reportError("Invalid number of arguments given for: " + commandName);
     return false;
   }
 

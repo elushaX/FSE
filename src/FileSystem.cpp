@@ -34,7 +34,7 @@ std::shared_ptr<Node> FileSystem::getNode(const Path& path, bool parent) {
 
 bool FileSystem::changeCurrent(const Path& path) {
   if (path.isInvalid()) {
-    gError = "Invalid path";
+    gError = "Path not found";
     return false;
   }
 

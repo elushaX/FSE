@@ -5,11 +5,12 @@
 
 #include <sstream>
 
-// in subtree links should be in-tree after copy operation
-// use C:/ for root
-// links have unique names
 // tests
+// links have unique names
+// use C:/ for root
+// copy operator exit if exists, do not rename
 // clean-ups
+// in subtree links should be in-tree after copy operation
 
 class FileSystem {
 public:
