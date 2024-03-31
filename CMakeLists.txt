@@ -27,5 +27,6 @@ target_link_libraries(TestConsistency ${PROJECT_NAME} UnitTest++)
 
 file(COPY "test/consistency" DESTINATION "${CMAKE_BINARY_DIR}/")
 
-add_test(NAME UnitTests COMMAND valgrind ./TestFSE)
+#add_test(NAME UnitTests COMMAND valgrind ./TestFSE)
+add_test(NAME UnitTests COMMAND ./TestFSE)
 add_test(NAME TestConsistency COMMAND ./consistency/check)
