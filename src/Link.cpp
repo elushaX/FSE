@@ -37,8 +37,7 @@ void Link::removeOutgoingLinks() {
   auto& links = target->mIncomingLinks;
   links.erase(std::remove_if(links.begin(), links.end(), [&](std::weak_ptr<Link>& node){
     auto targetLink = node.lock();
-    assert(targetLink);
-    return targetLink.get() == this;
+    return !targetLink || targetLink.get() == this;
   }), links.end());
 }
 
