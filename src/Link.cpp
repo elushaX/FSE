@@ -35,7 +35,6 @@ bool Link::linkNodes(const std::shared_ptr<Link>& link, const std::shared_ptr<No
   return true;
 }
 
-// TODO : move from link to node class or vise versa
 void Link::removeOutgoingLinks() {
   auto target = mLink.lock();
   assert(target);
@@ -67,7 +66,7 @@ std::shared_ptr<Node> Link::findNode(const std::vector<Key>& path, ui32 currentD
   return getLink()->findNode(path, currentDepth);
 }
 
-void Link::dumpUtil(std::stringstream& ss, const Key& key, ui32 currentDepth, std::vector<bool>& indents) {
+void Link::dumpUtil(std::ostream& ss, const Key& key, ui32 currentDepth, std::vector<bool>& indents) {
   std::vector<std::shared_ptr<Node>> path;
   getNodeStraightPath(getLink(), path);
   std::reverse(path.begin(), path.end());

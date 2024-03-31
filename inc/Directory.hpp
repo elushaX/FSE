@@ -35,7 +35,7 @@ public:
 
 private:
   void getMaxDepthUtil(ui32 depth, ui32& maxDepth) const;
-  void dumpUtil(std::stringstream& ss, const Key& key, ui32 currentDepth, std::vector<bool>& indents) override;
+  void dumpUtil(std::ostream& ss, const Key& key, ui32 currentDepth, std::vector<bool>& indents) override;
 
 public:
   DirectoryTree mMembers;

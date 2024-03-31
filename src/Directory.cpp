@@ -52,7 +52,7 @@ void Directory::getMaxDepthUtil(ui32 depth, ui32& maxDepth) const {
   }
 }
 
-void Directory::dumpUtil(std::stringstream& ss, const Key& key, ui32 currentDepth, std::vector<bool>& indents) {
+void Directory::dumpUtil(std::ostream& ss, const Key& key, ui32 currentDepth, std::vector<bool>& indents) {
   indents[currentDepth] = true;
   indent(ss, currentDepth, indents);
 

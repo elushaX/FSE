@@ -1,5 +1,6 @@
 
 #include <iostream>
+#include <fstream>
 #include "Tests.hpp"
 
 SUITE(FSE) {
@@ -48,11 +49,11 @@ SUITE(FSE) {
         { "mhl", 20 },
         { "mdl", 20 },
         { "cd", 5 },
-        { "rd", 1 },
-        { "del", 10 },
-        { "deltree", 10 },
+        { "rd", 5 },
+        { "del", 1 },
+        { "deltree", 2 },
         { "move", 20 },
-        { "copy", 20 },
+        { "copy", 5 },
     });
 
     StringDistribution names({
@@ -62,6 +63,8 @@ SUITE(FSE) {
         { "c", 1 },
         { "d", 1 },
         { "e", 1 },
+        { "f", 1 },
+        { "g", 1 },
     });
 
     std::discrete_distribution<int> pathLenDist({ 0.1, 0.2, 0.4, 0.5, 0.1 });
@@ -75,13 +78,18 @@ SUITE(FSE) {
       }
     };
 
+    std::ofstream commandsDump("consistency_commands_new");
+
     runFor(interpreter, timeLimitSec, itemLimit, [&]() {
       std::stringstream ss;
       ss << commands.get();
       generatePath(ss);
       if (pathLenDist(rng) % 2) generatePath(ss);
+      commandsDump << ss.str() << "\n";
       return ss.str();
     });
+
+    interpreter.dumpToFile("consistency_state_new");
   }
 }
 

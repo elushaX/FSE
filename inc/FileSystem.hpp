@@ -5,11 +5,11 @@
 
 #include <sstream>
 
-// tests
-// links have unique names
-// use C:/ for root
-// copy operator exit if exists, do not rename
+// use single vector for incoming links
+// move link nodes from link to node class or vise versa
 // clean-ups
+// links have unique names
+// copy operator exit if exists, do not rename
 // in subtree links should be in-tree after copy operation
 // update link if exists
 
@@ -27,6 +27,7 @@ public:
   bool moveNode(const Path& source, const Path& to);
   bool makeLink(const Path& source, const Path& to, bool isDynamic);
 
+  std::ostream& dump(std::ostream& stream) const;
   void log() const;
   ui64 size() const;
 

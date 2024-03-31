@@ -16,6 +16,8 @@ public:
   bool interpret(const std::string& command);
   void printHelp();
 
+  void dumpToFile(const std::string& name) const;
+
 private:
   void reportError(const std::string& string) const;
 

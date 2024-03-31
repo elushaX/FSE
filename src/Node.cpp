@@ -73,21 +73,22 @@ void Node::getNodeStraightPath(const std::shared_ptr<Node>& node, std::vector<st
   getNodeStraightPath(node->mParent.lock(), path);
 }
 
-void Node::dump(std::stringstream& ss) {
+std::ostream& Node::dump(std::ostream &stream) {
   std::vector<bool> indents;
   indents.resize(getMaxDepth());
-  dumpUtil(ss, mKey, 0, indents);
-  ss << "\n";
+  dumpUtil(stream, mKey, 0, indents);
+  stream << "\n";
+  return stream;
 }
 
-void Node::dumpUtil(std::stringstream& ss, const Key& key, ui32 currentDepth, std::vector<bool>& indents) {
-  indent(ss, currentDepth, indents);
-  ss << key;
+void Node::dumpUtil(std::ostream &stream, const Key& key, ui32 currentDepth, std::vector<bool>& indents) {
+  indent(stream, currentDepth, indents);
+  stream << key;
   // ss << " [h" << mIncomingHardLinks.size() << ": d" << mIncomingDynamicLinks.size() << "] ";
-  ss << "\n";
+  stream << "\n";
 }
 
-void Node::indent(std::stringstream & ss, ui32 depth, std::vector<bool>& indents) {
+void Node::indent(std::ostream& ss, ui32 depth, std::vector<bool>& indents) {
   if (!depth) return;
   for (auto i  = 0; i < depth - 1; i++) {
     ss << (indents[i] ? " |" : "  ");

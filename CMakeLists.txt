@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(FileSystemEmulator)
+project(FSE)
 set(CMAKE_CXX_STANDARD 20)
 enable_testing()
 
@@ -18,12 +18,16 @@ target_link_libraries(interactive ${PROJECT_NAME})
 
 add_executable(streamExec "app/StreamReader.cpp")
 target_link_libraries(streamExec ${PROJECT_NAME})
-file(COPY "test/commands" DESTINATION "${CMAKE_BINARY_DIR}/")
 
-file(GLOB TEST_SOURCES "./test/*.cpp")
-add_executable(Test${PROJECT_NAME} ${TEST_SOURCES})
-target_link_libraries(Test${PROJECT_NAME} ${PROJECT_NAME} UnitTest++)
+add_executable(TestFSE "test/Tests.cpp")
+target_link_libraries(TestFSE ${PROJECT_NAME} UnitTest++)
 
+add_executable(TestConsistency "test/TestConsistency.cpp")
+target_link_libraries(TestConsistency ${PROJECT_NAME} UnitTest++)
 
-add_test(NAME UnitTests COMMAND Test${PROJECT_NAME})
-add_test(NAME StreamTest COMMAND valgrind --leak-check=full ./streamExec)
+file(COPY "test/consistency_state" DESTINATION "${CMAKE_BINARY_DIR}/")
+file(COPY "test/consistency_commands" DESTINATION "${CMAKE_BINARY_DIR}/")
+file(COPY "test/checkConsistency" DESTINATION "${CMAKE_BINARY_DIR}/")
+
+add_test(NAME UnitTests COMMAND valgrind ./TestFSE)
+add_test(NAME TestConsistency COMMAND ./checkConsistency)

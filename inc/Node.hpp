@@ -31,7 +31,7 @@ public:
   virtual bool detachNode(const Key& key) { return false; }
   virtual bool attachNode(const Key &newKey, std::shared_ptr<Node> newNode) { return false; }
   virtual void getMaxDepthUtil(ui32 depth, ui32& maxDepth) const {}
-  virtual void dumpUtil(std::stringstream& ss, const Key& key, ui32 currentDepth, std::vector<bool>& indents);
+  virtual void dumpUtil(std::ostream& stream, const Key& key, ui32 currentDepth, std::vector<bool>& indents);
   virtual ui64 size() const { return 0; }
   virtual std::shared_ptr<Node> getTarget();
   virtual std::shared_ptr<Node> findNode(const std::vector<Key>& path, ui32 currentDepth = 0);
@@ -43,10 +43,10 @@ public:
   virtual void removeOutgoingLinks() {}
 
   ui32 getMaxDepth() const;
-  void dump(std::stringstream& ss);
+  std::ostream& dump(std::ostream &stream);
   void getNodeStraightPath(const std::shared_ptr<Node>& node, std::vector<std::shared_ptr<Node>>& path) const;
   bool empty() const { return !size(); }
-  static void indent(std::stringstream & ss, ui32 depth, std::vector<bool>& indents);
+  static void indent(std::ostream& ss, ui32 depth, std::vector<bool>& indents);
 
 public:
   Key mKey;

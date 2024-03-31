@@ -381,19 +381,7 @@ bool FileSystem::moveNode(const Path &source, const Path &target) {
 
 void FileSystem::log() const {
   std::stringstream ss;
-
-  std::vector<std::shared_ptr<Node>> currentPath;
-  root->getNodeStraightPath(currentDirectory, currentPath);
-  std::reverse(currentPath.begin(), currentPath.end());
-
-  ss << "pwd [ ";
-  for (auto it = currentPath.begin(); it != currentPath.end(); ++it) {
-    ss << (*it)->mKey;
-    if (std::distance(it, currentPath.end()) > 1) ss << "/";
-  }
-  ss << " ]\n";
-
-  root->dump(ss);
+  dump(ss);
   std::cout << ss.str();
 }
 
@@ -424,4 +412,21 @@ bool FileSystem::isPathContains(const std::shared_ptr<Node>& node, const std::sh
 
 ui64 FileSystem::size() const {
   return root->size();
+}
+
+std::ostream& FileSystem::dump(std::ostream &stream) const {
+  std::vector<std::shared_ptr<Node>> currentPath;
+  root->getNodeStraightPath(currentDirectory, currentPath);
+  std::reverse(currentPath.begin(), currentPath.end());
+
+  stream << "pwd [ ";
+  for (auto it = currentPath.begin(); it != currentPath.end(); ++it) {
+    stream << (*it)->mKey;
+    if (std::distance(it, currentPath.end()) > 1) stream << "/";
+  }
+  stream << " ]\n";
+
+  root->dump(stream);
+
+  return stream;
 }

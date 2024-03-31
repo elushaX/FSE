@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sstream>
 #include <algorithm>
+#include <fstream>
 
 void getWords(const std::string& in, std::vector<std::string>& out) {
   std::stringstream ss(in);
@@ -93,7 +94,7 @@ Interpreter::Interpreter() {
 
 void Interpreter::reportError(const std::string& description) const {
   if (logType == DEFAULT)
-    std::cout << "ERROR: " << description << "\n\n";
+    std::cerr << "ERROR: " << description << "\n\n";
 }
 
 void Interpreter::printHelp() {
@@ -146,4 +147,9 @@ bool Interpreter::interpret(const std::string& command) {
   }
 
   return true;
+}
+
+void Interpreter::dumpToFile(const std::string& name) const {
+  std::ofstream stream(name);
+  mFileSystem.dump(stream);
 }

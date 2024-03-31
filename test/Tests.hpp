@@ -7,7 +7,7 @@
 #include <random>
 #include <chrono>
 
-const ui64 timeLimitSec = 3;
+const ui64 timeLimitSec = 1;
 const ui64 itemLimit = 1e6;
 
 std::random_device rd;
