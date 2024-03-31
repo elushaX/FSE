@@ -6,8 +6,6 @@
 #include <sstream>
 
 // copy operator exit if exists, do not rename
-// links have unique names
-// update link if exists
 
 class FileSystem {
 public:

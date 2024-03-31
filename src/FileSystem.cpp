@@ -161,7 +161,7 @@ bool FileSystem::makeLink(const Path& source, const Path& target, bool isDynamic
     return false;
   }
 
-  const Key& key = source.getFilename();
+  const Key& key = isDynamic ? "dlink" : "hlink";
 
   if (parentNodeTarget->findNode(key)) {
     gError = "Node with such name already exists";

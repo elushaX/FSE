@@ -68,8 +68,7 @@ void Link::dumpUtil(std::ostream& ss, const Key& key, ui32 currentDepth, std::ve
 
   indent(ss, currentDepth, indents);
 
-  ss << key;
-  ss << (isHardLink() ?  " hlink[" : " dlink[");
+  ss << key << "[";
   // ss << " [h" << mIncomingHardLinks.size() << ": d" << mIncomingDynamicLinks.size() << "] ";
 
   for (auto it = path.begin(); it != path.end(); ++it) {

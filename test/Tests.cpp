@@ -23,7 +23,7 @@ SUITE(FSE) {
     CHECK(interp("copy a C:/"));
     CHECK(!interp("deltree a"));
     CHECK(interp("deltree a_copy"));
-    CHECK(interp("del a/b/a"));
+    CHECK(interp("del a/b/hlink"));
     CHECK(interp("deltree a"));
 
     CHECK(interp("md a"));
