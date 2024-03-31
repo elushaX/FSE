@@ -9,11 +9,10 @@
 
 typedef unsigned long long ui64;
 typedef unsigned long ui32;
+typedef std::string Key;
 
 class Link;
 class Directory;
-
-typedef std::string Key;
 
 class Node {
 public:

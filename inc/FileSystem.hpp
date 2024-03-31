@@ -7,8 +7,6 @@
 
 // copy operator exit if exists, do not rename
 // links have unique names
-// use single vector for incoming links
-// clean-ups
 // update link if exists
 
 class FileSystem {

@@ -7,36 +7,36 @@ SUITE(FSE) {
   TEST (Simple) {
     Interpreter interpreter;
     auto interp = [&](auto name) {
-      interpreter.interpret(name);
+      return interpreter.interpret(name);
     };
 
-    interp("md a");
-    interp("md a/b");
-    interp("mdl a a/b");
-    interp("copy a C:/");
-    interp("deltree a");
-    interp("deltree a_copy");
+    CHECK(interp("md a"));
+    CHECK(interp("md a/b"));
+    CHECK(interp("mdl a a/b"));
+    CHECK(interp("copy a C:/"));
+    CHECK(interp("deltree a"));
+    CHECK(interp("deltree a_copy"));
 
-    interp("md a");
-    interp("md a/b");
-    interp("mhl a a/b");
-    interp("copy a C:/");
-    interp("deltree a");
-    interp("deltree a_copy");
-    interp("del a/b/a");
-    interp("deltree a");
+    CHECK(interp("md a"));
+    CHECK(interp("md a/b"));
+    CHECK(interp("mhl a a/b"));
+    CHECK(interp("copy a C:/"));
+    CHECK(!interp("deltree a"));
+    CHECK(interp("deltree a_copy"));
+    CHECK(interp("del a/b/a"));
+    CHECK(interp("deltree a"));
 
-    interp("md a");
-    interp("md a/b");
-    interp("mdl a a/b");
-    interp("copy a C:/");
-    interp("md c");
-    interp("move a c");
-    interp("move a_copy c");
+    CHECK(interp("md a"));
+    CHECK(interp("md a/b"));
+    CHECK(interp("mdl a a/b"));
+    CHECK(interp("copy a C:/"));
+    CHECK(interp("md c"));
+    CHECK(interp("move a c"));
+    CHECK(interp("move a_copy c"));
 
-    interp("copy c C:/");
+    CHECK(interp("copy c C:/"));
 
-    interp("deltree c");
+    CHECK(interp("deltree c"));
   }
 
   TEST (CommandNoise) {
@@ -78,18 +78,18 @@ SUITE(FSE) {
       }
     };
 
-    std::ofstream commandsDump("consistency_commands_new");
+    // std::ofstream commandsDump("consistency_commands_new");
 
     runFor(interpreter, timeLimitSec, itemLimit, [&]() {
       std::stringstream ss;
       ss << commands.get();
       generatePath(ss);
       if (pathLenDist(rng) % 2) generatePath(ss);
-      commandsDump << ss.str() << "\n";
+      // commandsDump << ss.str() << "\n";
       return ss.str();
     });
 
-    interpreter.dumpToFile("consistency_state_new");
+    // interpreter.dumpToFile("consistency_state_new");
   }
 }
 

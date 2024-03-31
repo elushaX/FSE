@@ -94,7 +94,7 @@ Interpreter::Interpreter() {
 
 void Interpreter::reportError(const std::string& description) const {
   if (logType == DEFAULT)
-    std::cerr << "ERROR: " << description << "\n\n";
+    std::cout << "ERROR: " << description << "\n\n";
 }
 
 void Interpreter::printHelp() {
