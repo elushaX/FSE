@@ -32,8 +32,11 @@ void Node::clearFlags(std::shared_ptr<Node>& directory) {
 }
 
 bool Node::isHardNode() const {
-  return std::any_of(mIncomingHardLinks.begin(), mIncomingHardLinks.end(), [this](const std::weak_ptr<Link>& hardLink) {
+  return std::any_of(mIncomingLinks.begin(), mIncomingLinks.end(), [this](const std::weak_ptr<Link>& hardLink) {
     auto linkNode = hardLink.lock();
+
+    if (!linkNode->isHardLink()) return false;
+
     auto ownLink = mWorkingNodeFlag.lock();
     assert(linkNode && ownLink);
 
@@ -45,8 +48,11 @@ bool Node::isHardNode() const {
 }
 
 void Node::removeIncomingDynamicLinks() {
-  for (auto& dynamicLink : mIncomingDynamicLinks) {
+  for (auto& dynamicLink : mIncomingLinks) {
     auto linkNode = dynamicLink.lock();
+
+    if (linkNode->isHardLink()) continue;
+
     auto ownLink = mWorkingNodeFlag.lock();
     assert(linkNode && ownLink);
 

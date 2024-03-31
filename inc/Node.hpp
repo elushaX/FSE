@@ -62,6 +62,5 @@ public:
   std::weak_ptr<Node> mParent;
 
   // to remove incoming links
-  std::vector<std::weak_ptr<Link>> mIncomingHardLinks;
-  std::vector<std::weak_ptr<Link>> mIncomingDynamicLinks;
+  std::vector<std::weak_ptr<Link>> mIncomingLinks;
 };

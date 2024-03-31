@@ -20,16 +20,12 @@ Link::~Link() = default;
 bool Link::linkNodes(const std::shared_ptr<Link>& link, const std::shared_ptr<Node>& target, bool hard) {
   if (target->getType() == LINK) return false;
 
-  // assert(!link->mLink.lock());
+  assert(!link->mLink.lock());
 
   link->mIsHard = hard;
   link->mLink = target;
 
-  if (hard) {
-    target->mIncomingHardLinks.push_back(link);
-  } else {
-    target->mIncomingDynamicLinks.push_back(link);
-  }
+  target->mIncomingLinks.push_back(link);
 
   return true;
 }
@@ -38,7 +34,7 @@ void Link::removeOutgoingLinks() {
   auto target = mLink.lock();
   assert(target);
 
-  auto& links = isHardLink() ? target->mIncomingHardLinks : target->mIncomingDynamicLinks;
+  auto& links = target->mIncomingLinks;
   links.erase(std::remove_if(links.begin(), links.end(), [&](std::weak_ptr<Link>& node){
     auto targetLink = node.lock();
     assert(targetLink);
