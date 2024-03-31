@@ -1,7 +1,6 @@
 
 #include "Link.hpp"
 
-#include <sstream>
 #include <cassert>
 #include <algorithm>
 #include <iostream>
@@ -63,6 +62,7 @@ std::shared_ptr<Node> Link::getTarget() {
 
 std::shared_ptr<Node> Link::findNode(const std::vector<Key>& path, ui32 currentDepth) {
   assert(path.size() != currentDepth);
+  // link on link is not allowed, so no inf looping here
   return getLink()->findNode(path, currentDepth);
 }
 

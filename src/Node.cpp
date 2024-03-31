@@ -3,7 +3,6 @@
 #include "Link.hpp"
 
 #include <memory>
-#include <sstream>
 #include <cassert>
 #include <algorithm>
 #include <iostream>
@@ -25,7 +24,6 @@ ui32 Node::getMaxDepth() const {
 }
 
 std::shared_ptr<Node> Node::findNode(const std::vector<Key>& path, ui32 currentDepth) {
-  // assert(false);
   return nullptr;
 }
 
@@ -94,4 +92,32 @@ void Node::indent(std::ostream& ss, ui32 depth, std::vector<bool>& indents) {
     ss << (indents[i] ? " |" : "  ");
   }
   ss << " |_";
+}
+
+void Node::removeOutgoingLinks() {}
+
+bool Node::detachNode(const Key &key) {
+  return false;
+}
+
+bool Node::attachNode(const Key &newKey, const std::shared_ptr<Node> &newNode) {
+  return false;
+}
+
+std::shared_ptr<Node> Node::findNode(const Key &path) {
+  return nullptr;
+}
+
+bool Node::empty() const {
+  return !size();
+}
+
+void Node::getMaxDepthUtil(ui32 depth, ui32 &maxDepth) const {}
+
+Node::NodeType Node::getType() const {
+  return Node::FILE;
+}
+
+ui64 Node::size() const {
+  return 0;
 }

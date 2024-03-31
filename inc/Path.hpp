@@ -3,25 +3,26 @@
 #include <vector>
 #include <string>
 
+typedef unsigned long long ui64;
+
 extern std::vector<char> transitions;
 void initializeTransitions();
 
 class Path {
 public:
   Path() = default;
-  Path(const std::string& path);
+  explicit Path(const std::string& path);
 
   void set(const std::string& path);
   const std::string& operator[](int idx) const;
 
-  bool isValid() const;
-  bool isInvalid() const;
-  bool isAbsolute() const;
-  int getDepth() const;
+  [[nodiscard]] bool isInvalid() const;
+  [[nodiscard]] bool isAbsolute() const;
+  [[nodiscard]] ui64 getDepth() const;
 
-  const std::vector<std::string>& getChain() const;
-  std::vector<std::string> getParentChain() const;
-  const std::string& getFilename() const;
+  [[nodiscard]] const std::vector<std::string>& getChain() const;
+  [[nodiscard]] std::vector<std::string> getParentChain() const;
+  [[nodiscard]] const std::string& getFilename() const;
 
 private:
   std::vector<std::string> mChain;

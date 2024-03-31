@@ -8,14 +8,13 @@ public:
   Link(const Link& node);
   ~Link() override;
 
-  NodeType getType() const override { return LINK; }
+  [[nodiscard]] NodeType getType() const override { return LINK; }
   [[nodiscard]] std::shared_ptr<Node> clone() const override;
   [[nodiscard]] std::shared_ptr<Node> getLink() const;
   [[nodiscard]] bool isHardLink() const;
 
   std::shared_ptr<Node> getTarget() override;
 
-  // link on link is not allowed, so no inf looping here
   std::shared_ptr<Node> findNode(const std::vector<Key>& path, ui32 currentDepth) override;
   void dumpUtil(std::ostream& ss, const Key& key, ui32 currentDepth, std::vector<bool>& indents) override;
 

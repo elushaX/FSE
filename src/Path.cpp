@@ -20,10 +20,6 @@ Path::Path(const std::string& path) {
   set(path);
 }
 
-bool Path::isValid() const {
-  return mIsValid;
-}
-
 bool Path::isInvalid() const {
   return !mIsValid;
 }
@@ -32,7 +28,7 @@ bool Path::isAbsolute() const {
   return mAbsolute;
 }
 
-int Path::getDepth() const {
+ui64 Path::getDepth() const {
   return mChain.size();
 }
 
@@ -62,24 +58,23 @@ void Path::set(const std::string& path) {
   std::string lowercasePath = path;
 
   const auto drivePrefixSize = std::strlen(drivePrefix);
-  if (drivePrefixSize) {
-    if ((lowercasePath.size() >= drivePrefixSize) && (std::memcmp(lowercasePath.c_str(), drivePrefix, drivePrefixSize) == 0)) {
-      lowercasePath.erase(0, drivePrefixSize);
-      mAbsolute = true;
-      if (lowercasePath.empty()) lowercasePath = "/";
-      else if (lowercasePath[0] != '/') {
-        mIsValid = false;
-        return;
-      }
-    } else {
-      if (lowercasePath[0] == '/') {
-        mIsValid = false;
-        return;
-      }
+  assert(drivePrefixSize);
+
+  if ((lowercasePath.size() >= drivePrefixSize) && (std::memcmp(lowercasePath.c_str(), drivePrefix, drivePrefixSize) == 0)) {
+    lowercasePath.erase(0, drivePrefixSize);
+    mAbsolute = true;
+    if (lowercasePath.empty()) lowercasePath = "/";
+    else if (lowercasePath[0] != '/') {
+      mIsValid = false;
+      return;
     }
   } else {
-    mAbsolute = path.front() == '/';
+    if (lowercasePath[0] == '/') {
+      mIsValid = false;
+      return;
+    }
   }
+
 
   mDirectory = path.back() == '/';
   mChain.clear();

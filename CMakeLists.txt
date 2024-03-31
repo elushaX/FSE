@@ -25,9 +25,7 @@ target_link_libraries(TestFSE ${PROJECT_NAME} UnitTest++)
 add_executable(TestConsistency "test/TestConsistency.cpp")
 target_link_libraries(TestConsistency ${PROJECT_NAME} UnitTest++)
 
-file(COPY "test/consistency_state" DESTINATION "${CMAKE_BINARY_DIR}/")
-file(COPY "test/consistency_commands" DESTINATION "${CMAKE_BINARY_DIR}/")
-file(COPY "test/checkConsistency" DESTINATION "${CMAKE_BINARY_DIR}/")
+file(COPY "test/consistency" DESTINATION "${CMAKE_BINARY_DIR}/")
 
 add_test(NAME UnitTests COMMAND valgrind ./TestFSE)
-add_test(NAME TestConsistency COMMAND ./checkConsistency)
+add_test(NAME TestConsistency COMMAND ./consistency/check)

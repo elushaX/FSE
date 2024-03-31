@@ -15,7 +15,7 @@ Interpreter::Interpreter() {
       "change working directory",
       1,
       [](FileSystem& filesystem, const std::vector<std::string>& args){
-        return filesystem.changeCurrent(args[1]);
+        return filesystem.changeCurrent(Path(args[1]));
       }
   };
 
@@ -23,7 +23,7 @@ Interpreter::Interpreter() {
       "create directory",
       1,
       [](FileSystem& filesystem, const std::vector<std::string>& args){
-        return filesystem.makeDirectory(args[1]);
+        return filesystem.makeDirectory(Path(args[1]));
       }
   };
 
@@ -31,7 +31,7 @@ Interpreter::Interpreter() {
       "remove directory",
       1,
       [](FileSystem& filesystem, const std::vector<std::string>& args){
-        return filesystem.removeDirectory(args[1], false);
+        return filesystem.removeDirectory(Path(args[1]), false);
       }
   };
 
@@ -39,7 +39,7 @@ Interpreter::Interpreter() {
       "remove directory recursively",
       1,
       [](FileSystem& filesystem, const std::vector<std::string>& args){
-        return filesystem.removeDirectory(args[1], true);
+        return filesystem.removeDirectory(Path(args[1]), true);
       }
   };
 
@@ -47,7 +47,7 @@ Interpreter::Interpreter() {
       "make file",
       1,
       [](FileSystem& filesystem, const std::vector<std::string>& args){
-        return filesystem.makeFile(args[1]);
+        return filesystem.makeFile(Path(args[1]));
       }
   };
 
@@ -55,7 +55,7 @@ Interpreter::Interpreter() {
       "remove file or link",
       1,
       [](FileSystem& filesystem, const std::vector<std::string>& args){
-        return filesystem.removeFileOrLink(args[1]);
+        return filesystem.removeFileOrLink(Path(args[1]));
       }
   };
 
@@ -63,7 +63,7 @@ Interpreter::Interpreter() {
       "recursive copy of a node",
       2,
       [](FileSystem& filesystem, const std::vector<std::string>& args){
-        return filesystem.copyNode(args[1], args[2]);
+        return filesystem.copyNode(Path(args[1]), Path(args[2]));
       }
   };
 
@@ -71,7 +71,7 @@ Interpreter::Interpreter() {
       "move node",
       2,
       [](FileSystem& filesystem, const std::vector<std::string>& args){
-        return filesystem.moveNode(args[1], args[2]);
+        return filesystem.moveNode(Path(args[1]), Path(args[2]));
       }
   };
 
@@ -79,7 +79,7 @@ Interpreter::Interpreter() {
       "make hard link",
       2,
       [](FileSystem& filesystem, const std::vector<std::string>& args){
-        return filesystem.makeLink(args[1], args[2], false);
+        return filesystem.makeLink(Path(args[1]), Path(args[2]), false);
       }
   };
 
@@ -87,7 +87,7 @@ Interpreter::Interpreter() {
       "make dynamic link",
       2,
       [](FileSystem& filesystem, const std::vector<std::string>& args){
-        return filesystem.makeLink(args[1], args[2], true);
+        return filesystem.makeLink(Path(args[1]), Path(args[2]), true);
       }
   };
 }

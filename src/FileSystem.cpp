@@ -22,7 +22,7 @@ FileSystem::~FileSystem() = default;
 std::shared_ptr<Node> FileSystem::getNode(const Path& path, bool parent) {
   auto pathChain = parent ? path.getParentChain() : path.getChain();
   auto currentNode = path.isAbsolute() ? root : currentDirectory;
-  auto parentNode = pathChain.empty() ? currentNode : currentNode->findNode(pathChain);
+  auto parentNode = pathChain.empty() ? currentNode : currentNode->findNode(pathChain, 0);
 
   if (parent && parentNode) {
     while (parentNode->getTarget()) {
@@ -299,7 +299,7 @@ bool FileSystem::copyNode(const Path& source, const Path& target) {
   if (!sourceNode) {
     gError = "Invalid source path";
     return false;
-  };
+  }
 
   if (parentNodeTarget->getType() != Node::DIRECTORY) {
     gError = "Target path is not a directory";

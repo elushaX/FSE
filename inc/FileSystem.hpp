@@ -5,12 +5,10 @@
 
 #include <sstream>
 
-// use single vector for incoming links
-// move link nodes from link to node class or vise versa
-// clean-ups
-// links have unique names
 // copy operator exit if exists, do not rename
-// in subtree links should be in-tree after copy operation
+// links have unique names
+// use single vector for incoming links
+// clean-ups
 // update link if exists
 
 class FileSystem {
@@ -29,7 +27,7 @@ public:
 
   std::ostream& dump(std::ostream& stream) const;
   void log() const;
-  ui64 size() const;
+  [[nodiscard]] ui64 size() const;
 
   static const std::string& getLastError();
 

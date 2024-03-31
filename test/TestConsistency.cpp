@@ -5,7 +5,7 @@
 
 // generates and saves final state to check if there are any logic changes to the code
 
-int main(int argc, char* argv[]) {
+int main(int, char*[]) {
   Interpreter interpreter;
   interpreter.logType = Interpreter::NONE;
 

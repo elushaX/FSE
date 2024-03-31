@@ -10,16 +10,16 @@ public:
   Directory(const Directory& node);
   ~Directory() override;
 
-  NodeType getType() const override { return DIRECTORY; }
+  [[nodiscard]] NodeType getType() const override { return DIRECTORY; }
   [[nodiscard]] std::shared_ptr<Node> clone() const override;
   bool detachNode(const Key& key) override;
-  bool attachNode(const Key &newKey, std::shared_ptr<Node> newNode) override;
-  std::shared_ptr<Node> findNode(const std::vector<Key>& path, ui32 currentDepth = 0) override;
+  bool attachNode(const Key &newKey, const std::shared_ptr<Node>& newNode) override;
+  std::shared_ptr<Node> findNode(const std::vector<Key>& path, ui32 currentDepth) override;
   std::shared_ptr<Node> findNode(const Key& path) override;
   [[nodiscard]] ui64 size() const override;
 
   void clearFlags(std::shared_ptr<Node>& directory) override;
-  bool isHardNode() const override;
+  [[nodiscard]] bool isHardNode() const override;
   void removeIncomingDynamicLinks() override;
   void removeOutgoingLinks() override;
 
@@ -34,7 +34,7 @@ public:
   }
 
 private:
-  void getMaxDepthUtil(ui32 depth, ui32& maxDepth) const;
+  void getMaxDepthUtil(ui32 depth, ui32& maxDepth) const override;
   void dumpUtil(std::ostream& ss, const Key& key, ui32 currentDepth, std::vector<bool>& indents) override;
 
 public:

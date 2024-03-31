@@ -2,16 +2,13 @@
 #include "Directory.hpp"
 #include "Link.hpp"
 
-#include <sstream>
 #include <algorithm>
 #include <iostream>
 
 Directory::Directory() = default;
+Directory::~Directory() = default;
 
-Directory::~Directory() {
-}
-
-bool Directory::attachNode(const Key &newKey, std::shared_ptr<Node> newNode) {
+bool Directory::attachNode(const Key &newKey, const std::shared_ptr<Node>& newNode) {
   assert(mMembers.find(newKey) == mMembers.end());
   mMembers.insert({ newKey, newNode });
   newNode->mKey = newKey;
